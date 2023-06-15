@@ -38,12 +38,13 @@ void setup() {
 void loop() {
   display.clearDisplay();
   joystick.updateJoystick();
-  btn1.updateButton();
-  btn2.updateButton();
+  // btn1.updateButton();
+  // btn2.updateButton();
 
   gameRenderer.update(delta);
 
   display.display();
+
   do delta = (millis() - timer) % ULONG_MAX;
   while (delta < 1);
   timer = millis();

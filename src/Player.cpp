@@ -20,6 +20,7 @@ class Player {
     Vector2 dim;
     Vector2 pos;
     float rotation;
+    Vector2 lastJoyPos;
   
     Vector2 top;
     Vector2 left;
@@ -31,6 +32,7 @@ class Player {
 
     float accel = 50;
     float maxSpeed = 50;
+    float decel = 30;
 
     Vector2 vel;
 
@@ -77,29 +79,37 @@ class Player {
       );
     }
     void update(float deltaTime){
-      if (joystick->getDeg() == -1) return; 
+      deltaTime /= 1000.0;
       
-      rotation = joystick->getDeg();
+      if (joystick->getDeg() != -1){ 
+        rotation = joystick->getDeg();
+        lastJoyPos = joystick->getNormalized();
+      }
+
+
+      float magnitude = sqrt(vel.x * vel.x + vel.y *vel.y);
+      float decelRate = decel * deltaTime;
+      float deMag = magnitude - decelRate;
+
+      if (joystick->value.x != 0)
+        vel.x += accel * joystick->value.x * deltaTime;
+      else
+        vel.x *= decelRate >= magnitude ? 0 : deMag / magnitude;
+
+      if (joystick->value.y != 0)
+        vel.y += accel * joystick->value.y * deltaTime;
+      else
+        vel.y *= decelRate >= magnitude ? 0 : deMag / magnitude;
       
-//      if (btn1->getState()){
-//      pos.x = max(min(pos.x + joystick->value.x * speed * (deltaTime / 1000.0), SCREEN_WIDTH), 0);
-//
-//      pos.y = max(min(pos.y + joystick->value.y * speed * (deltaTime / 1000.0), SCREEN_HEIGHT), 0);  
-//      }
 
-      vel.x = min(maxSpeed, vel.x + joystick->value.x * accel * (deltaTime / 1000.0));
-      vel.y = min(maxSpeed, vel.y + joystick->value.y * accel * (deltaTime / 1000.0));
-
-      pos.x = max(min(pos.x + vel.x * (deltaTime / 1000.0), SCREEN_WIDTH), 0);
-
-      pos.y = max(min(pos.y + vel.y * (deltaTime / 1000.0), SCREEN_HEIGHT), 0); 
+      pos.x = max(min(pos.x + vel.x * deltaTime, SCREEN_WIDTH), 0);
+      pos.y = max(min(pos.y + vel.y * deltaTime, SCREEN_HEIGHT), 0); 
       
-      if (btn2->getState() && !hasFired){
+
+      if (btn2->getState() && !hasFired && bullets.max > bullets.numElements){
         hasFired = true;
-        
-        if (bullets.max > bullets.numElements) 
-          bullets.add(Bullet(display, top, joystick->getNormalized()));
-        
+
+        bullets.add(Bullet(display, top, lastJoyPos));
       }else if (!btn2->getState() && hasFired) hasFired = false;
     }
 };

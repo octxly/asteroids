@@ -14,12 +14,12 @@ class Button {
         this->pin = pin;
       }
       
-      void updateButton(){
-        if (state == 0 && digitalRead(pin)) state = 1;
-        else if (state == 1 && !digitalRead(pin)) state = 0;
-      }
+      // void updateButton(){
+      //   if (state == 0 && ) state = 1;
+      //   else if (state == 1 && !digitalRead(pin)) state = 0;
+      // }
 
-      int getState(){ return state; }
+      int getState(){ return digitalRead(pin); }
 };
 
 #endif

@@ -23,7 +23,7 @@ class Bullet{
     Bullet(Adafruit_SSD1306 *display, Vector2 pos, Vector2 dir) : 
     display(display), pos(pos), dir(dir) {}
 
-    Bullet(): display(display), pos(pos), dir(Vector2()) {}
+    Bullet(): display(0), pos(Vector2()), dir(Vector2()) {}
 
     void update(float deltaTime) {
       
