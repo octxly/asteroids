@@ -21,10 +21,6 @@ class Player {
     Vector2 pos;
     float rotation;
     Vector2 lastJoyPos;
-  
-    Vector2 top;
-    Vector2 left;
-    Vector2 right;
 
     Joystick *joystick;
     Button *btn1;
@@ -37,17 +33,6 @@ class Player {
     Vector2 vel;
 
     bool hasFired = false;
-
-    void calcPoints(){
-        top = Vector2(pos.x, pos.y - dim.y / 2);
-        top = rotateAround(top);
-        
-        left = Vector2(pos.x + dim.x / 2, pos.y + dim.y / 2);
-        left = rotateAround(left);
-        
-        right = Vector2(pos.x - dim.x / 2, pos.y + dim.y / 2);
-        right = rotateAround(right);
-    }
     
     Vector2 rotateAround(Vector2 point){
       float angleRad = rotation * PI / 180.0;
@@ -65,11 +50,12 @@ class Player {
     ArrayList<Bullet> bullets;
   
     Player(Adafruit_SSD1306 *display, Vector2 dimensions, Vector2 pos, float rotation, Joystick *joystick, Button *btn1, Button *btn2) : 
-      display(display), dim(dimensions), pos(pos), rotation(rotation), joystick(joystick), btn1(btn1), btn2(btn2)
-      { calcPoints(); }
+      display(display), dim(dimensions), pos(pos), rotation(rotation), joystick(joystick), btn1(btn1), btn2(btn2) {}
 
     void render(){
-      calcPoints();
+      Vector2 top = rotateAround(Vector2(pos.x, pos.y - dim.y / 2));
+      Vector2 left = rotateAround(Vector2(pos.x + dim.x / 2, pos.y + dim.y / 2));
+      Vector2 right = rotateAround(Vector2(pos.x - dim.x / 2, pos.y + dim.y / 2));
 
       display->fillTriangle(
         top.x, top.y,
@@ -104,12 +90,11 @@ class Player {
 
       pos.x = max(min(pos.x + vel.x * deltaTime, SCREEN_WIDTH), 0);
       pos.y = max(min(pos.y + vel.y * deltaTime, SCREEN_HEIGHT), 0); 
-      
 
       if (btn2->getState() && !hasFired && bullets.max > bullets.numElements){
         hasFired = true;
 
-        bullets.add(Bullet(display, top, lastJoyPos));
+        bullets.add(Bullet(display, pos, lastJoyPos));
       }else if (!btn2->getState() && hasFired) hasFired = false;
     }
 };

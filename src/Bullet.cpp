@@ -26,9 +26,9 @@ class Bullet{
     Bullet(): display(0), pos(Vector2()), dir(Vector2()) {}
 
     void update(float deltaTime) {
-      
-      pos.x += dir.x * speed * (deltaTime / 1000.0);
-      pos.y += dir.y * speed * (deltaTime / 1000.0);
+      deltaTime /= 1000.0;
+      pos.x += dir.x * speed * deltaTime;
+      pos.y += dir.y * speed * deltaTime;
       
       if(pos.x > SCREEN_WIDTH || pos.x < 0 || pos.y > SCREEN_HEIGHT || pos.y < 0) markedDelete = true;
     }
