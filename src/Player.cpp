@@ -35,7 +35,7 @@ class Player {
     bool hasFired = false;
     
     Vector2 rotateAround(Vector2 point){
-      float angleRad = rotation * PI / 180.0;
+      float angleRad = radians(rotation);
       
       float transX = point.x - pos.x;
       float transY = point.y - pos.y;
@@ -73,7 +73,7 @@ class Player {
       }
 
 
-      float magnitude = sqrt(vel.x * vel.x + vel.y *vel.y);
+      float magnitude = sqrt(vel.x * vel.x + vel.y * vel.y);
       float decelRate = decel * deltaTime;
       float deMag = magnitude - decelRate;
 

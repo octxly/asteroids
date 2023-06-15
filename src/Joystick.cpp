@@ -40,10 +40,10 @@ class Joystick {
     float getDeg(){
       if (value.x == 0 && value.y == 0) return -1; 
       
-      float angleRad = atan2(value.x, -value.y);
-      float angleDeg = (angleRad * 180.0 / PI);
+      // float angleRad = atan2(value.x, -value.y);
+      // float angleDeg = (angleRad * 180.0 / PI);
 
-      return angleDeg;
+      return degrees(atan2(value.x, -value.y));
     }
 };
 

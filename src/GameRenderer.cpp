@@ -12,9 +12,9 @@ class GameRenderer{
   public:
     void setPlayer(Player *plr){ player = plr; }
 
-    void addBullet(Bullet bullet){
-      player->bullets.add(bullet);
-    }
+    // void addBullet(Bullet bullet){
+    //   player->bullets.add(bullet);
+    // }
 
     void update(float deltaTime){
       player->update(deltaTime);
