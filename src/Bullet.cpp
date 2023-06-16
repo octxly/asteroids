@@ -1,7 +1,6 @@
 #ifndef BULLET
 #define BULLET
 
-#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "Vector.cpp"
 #include <Arduino.h>
@@ -20,10 +19,10 @@ class Bullet{
   public:
     bool markedDelete = false;
   
-    Bullet(Adafruit_SSD1306 *display, Vector2 pos, Vector2 dir) : 
+    Bullet(Adafruit_SSD1306 *display = 0, Vector2 pos = Vector2(), Vector2 dir = Vector2()) : 
     display(display), pos(pos), dir(dir) {}
-
-    Bullet(): display(0), pos(Vector2()), dir(Vector2()) {}
+    
+    // Bullet(): display(0), pos(Vector2()), dir(Vector2()) {}
 
     void update(float deltaTime) {
       deltaTime /= 1000.0;

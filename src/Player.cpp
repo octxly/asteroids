@@ -20,7 +20,7 @@ class Player {
     Vector2 dim;
     Vector2 pos;
     float rotation;
-    Vector2 lastJoyPos;
+    Vector2 lastJoyPos = Vector2(0, 1);
 
     Joystick *joystick;
     Button *btn1;
@@ -47,7 +47,7 @@ class Player {
     }
     
   public:
-    ArrayList<Bullet> bullets;
+    ArrayList<Bullet, 10> bullets;
   
     Player(Adafruit_SSD1306 *display, Vector2 dimensions, Vector2 pos, float rotation, Joystick *joystick, Button *btn1, Button *btn2) : 
       display(display), dim(dimensions), pos(pos), rotation(rotation), joystick(joystick), btn1(btn1), btn2(btn2) {}
@@ -88,10 +88,16 @@ class Player {
         vel.y *= decelRate >= magnitude ? 0 : deMag / magnitude;
       
 
-      pos.x = max(min(pos.x + vel.x * deltaTime, SCREEN_WIDTH), 0);
-      pos.y = max(min(pos.y + vel.y * deltaTime, SCREEN_HEIGHT), 0); 
+      pos.x += vel.x * deltaTime;
+      pos.y += vel.y * deltaTime;
+      
+      pos.x = fmod(pos.x + SCREEN_WIDTH, SCREEN_WIDTH);
+      pos.x += pos.x < 0 ? SCREEN_WIDTH : 0;
+      pos.y = fmod(pos.y + SCREEN_HEIGHT, SCREEN_HEIGHT);
+      pos.y += pos.y < 0 ? SCREEN_HEIGHT : 0;
 
-      if (btn2->getState() && !hasFired && bullets.max > bullets.numElements){
+
+      if (btn2->getState() && !hasFired && bullets.getMax() > bullets.getSize()){
         hasFired = true;
 
         bullets.add(Bullet(display, pos, lastJoyPos));

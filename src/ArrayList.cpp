@@ -1,17 +1,17 @@
 #ifndef ARRAYLIST
 #define ARRAYLIST
 
-template <class T>
+#include <Function_objects.h>
+
+template <class T, int size>
 class ArrayList{
   private:
-    T arr[10];
+    T arr[size];
+    int numElements = 0;
 
   public:
-    int numElements = 0;
-    int max = 10;
-  
     void add(T obj){
-      if (numElements == max) return;
+      if (numElements == size) return;
 
       arr[numElements] = obj;
       numElements++;
@@ -33,12 +33,14 @@ class ArrayList{
       }
     }
 
-    template <typename Lambda>
-    void forEach(Lambda callback){
+    void forEach(FunctionObject<void(T*)> callback){
       for(int i = 0; i < numElements; i++){
         callback(&(arr[i]));
       }
     }
+
+    int getSize(){ return numElements; }
+    int getMax(){ return size; }
 };
 
 #endif
