@@ -14,6 +14,7 @@
 #define SCREEN_HEIGHT 64
 
 #define findLowest(a, b, c) (a<b?a:b<c?b:c)
+#define findLargest(a, b, c) (a>b?a:b>c?b:c)
 
 class Player {
   private:
@@ -67,8 +68,11 @@ class Player {
         1 
       );
 
-      bool wrapX = (top.x < 0) || (top.x >= SCREEN_WIDTH) || (left.x < 0) || (left.x >= SCREEN_WIDTH) || (right.x < 0) || (right.x >= SCREEN_WIDTH);
-      bool wrapY = (top.y < 0) || (top.y >= SCREEN_HEIGHT) || (left.y < 0) || (left.y >= SCREEN_HEIGHT) || (right.y < 0) || (right.y >= SCREEN_HEIGHT);
+      // bool wrapX = (top.x < 0) || (top.x >= SCREEN_WIDTH) || (left.x < 0) || (left.x >= SCREEN_WIDTH) || (right.x < 0) || (right.x >= SCREEN_WIDTH);
+      // bool wrapY = (top.y < 0) || (top.y >= SCREEN_HEIGHT) || (left.y < 0) || (left.y >= SCREEN_HEIGHT) || (right.y < 0) || (right.y >= SCREEN_HEIGHT);
+
+      bool wrapX = findLowest(top.x, left.x, right.x) < 0 || findLargest(top.x, left.x, right.x) >= SCREEN_WIDTH;
+      bool wrapY = findLowest(top.y, left.y, right.y) < 0 || findLargest(top.y, left.y, right.y) >= SCREEN_HEIGHT;
 
       //check if vertexes are <0 or >dimensions
       int xOffset = wrapX ? (findLowest(top.x, left.x, right.x) < 0 ? SCREEN_WIDTH : -SCREEN_WIDTH) : 0;
