@@ -13,6 +13,8 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
+#define findLowest(a, b, c) (a<b?a:b<c?b:c)
+
 class Player {
   private:
     Adafruit_SSD1306 *display;
@@ -27,8 +29,9 @@ class Player {
     Button *btn2;
 
     float accel = 50;
-    float maxSpeed = 50;
+    float maxSpeed = 75;
     float decel = 30;
+    float breakFactor = 1.25;
 
     Vector2 vel;
 
@@ -63,6 +66,22 @@ class Player {
         right.x, right.y,
         1 
       );
+
+      bool wrapX = (top.x < 0) || (top.x >= SCREEN_WIDTH) || (left.x < 0) || (left.x >= SCREEN_WIDTH) || (right.x < 0) || (right.x >= SCREEN_WIDTH);
+      bool wrapY = (top.y < 0) || (top.y >= SCREEN_HEIGHT) || (left.y < 0) || (left.y >= SCREEN_HEIGHT) || (right.y < 0) || (right.y >= SCREEN_HEIGHT);
+
+      //check if vertexes are <0 or >dimensions
+      int xOffset = wrapX ? (findLowest(top.x, left.x, right.x) < 0 ? SCREEN_WIDTH : -SCREEN_WIDTH) : 0;
+      int yOffset = wrapY ? (findLowest(top.y, left.y, right.y) < 0 ? SCREEN_HEIGHT : -SCREEN_HEIGHT) : 0;
+
+      if (wrapX || wrapY){
+        display->fillTriangle(
+          top.x + xOffset, top.y + yOffset,
+          left.x + xOffset, left.y + yOffset,
+          right.x + xOffset, right.y + yOffset,
+          1
+        );
+      }
     }
     void update(float deltaTime){
       deltaTime /= 1000.0;
@@ -77,16 +96,24 @@ class Player {
       float decelRate = decel * deltaTime;
       float deMag = magnitude - decelRate;
 
-      if (joystick->value.x != 0)
+      bool breakOn = btn1->getState();
+
+      if (joystick->value.x != 0 && !breakOn)
         vel.x += accel * joystick->value.x * deltaTime;
       else
-        vel.x *= decelRate >= magnitude ? 0 : deMag / magnitude;
+        vel.x *= (decelRate >= magnitude ? 0 : deMag / magnitude) / (breakOn ? breakFactor : 1);
 
-      if (joystick->value.y != 0)
+      if (joystick->value.y != 0 && !breakOn)
         vel.y += accel * joystick->value.y * deltaTime;
       else
-        vel.y *= decelRate >= magnitude ? 0 : deMag / magnitude;
-      
+        vel.y *= (decelRate >= magnitude ? 0 : deMag / magnitude) / (breakOn ? breakFactor : 1);
+
+      magnitude = sqrt(vel.x * vel.x + vel.y * vel.y);
+      if (magnitude > maxSpeed){
+        vel.x *= maxSpeed / magnitude;
+        vel.y *= maxSpeed / magnitude;
+      }
+      magnitude = sqrt(vel.x * vel.x + vel.y * vel.y);
 
       pos.x += vel.x * deltaTime;
       pos.y += vel.y * deltaTime;
@@ -99,8 +126,8 @@ class Player {
 
       if (btn2->getState() && !hasFired && bullets.getMax() > bullets.getSize()){
         hasFired = true;
-
-        bullets.add(Bullet(display, pos, lastJoyPos));
+        
+        bullets.add(Bullet(display, pos, lastJoyPos, magnitude));
       }else if (!btn2->getState() && hasFired) hasFired = false;
     }
 };

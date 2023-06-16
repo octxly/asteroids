@@ -19,10 +19,8 @@ class Bullet{
   public:
     bool markedDelete = false;
   
-    Bullet(Adafruit_SSD1306 *display = 0, Vector2 pos = Vector2(), Vector2 dir = Vector2()) : 
-    display(display), pos(pos), dir(dir) {}
-    
-    // Bullet(): display(0), pos(Vector2()), dir(Vector2()) {}
+    Bullet(Adafruit_SSD1306 *display = 0, Vector2 pos = Vector2(), Vector2 dir = Vector2(), float plrSpeed = 0) : 
+    display(display), pos(pos), dir(dir) { speed += plrSpeed; }
 
     void update(float deltaTime) {
       deltaTime /= 1000.0;
