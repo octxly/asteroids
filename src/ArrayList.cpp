@@ -22,9 +22,8 @@ class ArrayList{
       for (int i = 0; i < numElements; i++){
         if (&(arr[i]) == obj){
           
-          for (int j = i; j < numElements - 1; j++){
+          for (int j = i; j < numElements - 1; j++)
             arr[j] = arr[j + 1];
-          }
 
           numElements--;
 
@@ -34,9 +33,8 @@ class ArrayList{
     }
 
     void forEach(FunctionObject<void(T*)> callback){
-      for(int i = 0; i < numElements; i++){
+      for(int i = 0; i < numElements; i++)
         callback(&(arr[i]));
-      }
     }
 
     int getSize(){ return numElements; }

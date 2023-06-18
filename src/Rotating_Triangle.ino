@@ -22,13 +22,13 @@ Button btn2(3);
 
 GameRenderer gameRenderer;
 
-Player player(&display, Vector2(8, 10), Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), 0, &joystick, &btn1, &btn2);
+Player player(&display, Vector2(6, 8), Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), 0, &joystick, &btn1, &btn2);
 
 unsigned long timer = 0;
 unsigned long delta = 0;
 
 void setup() {
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3c);  
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  
   display.setTextColor(1);
   display.setTextSize(1);
 
@@ -38,8 +38,6 @@ void setup() {
 void loop() {
   display.clearDisplay();
   joystick.updateJoystick();
-  // btn1.updateButton();
-  // btn2.updateButton();
 
   gameRenderer.update(delta);
 
@@ -47,5 +45,6 @@ void loop() {
 
   do delta = (millis() - timer) % ULONG_MAX;
   while (delta < 1);
+  
   timer = millis();
 }

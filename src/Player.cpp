@@ -14,7 +14,8 @@
 #define SCREEN_HEIGHT 64
 
 #define findLowest(a, b, c) (a<b?a:b<c?b:c)
-#define findLargest(a, b, c) (a>b?a:b>c?b:c)
+#define findHighest(a, b, c) (a>b?a:b>c?b:c)
+#define magnitude(a1, a2) (sqrt(sq(a1) + sq(a2)))
 
 class Player {
   private:
@@ -22,30 +23,31 @@ class Player {
     
     Vector2 dim;
     Vector2 pos;
+    Vector2 vel;
     float rotation;
-    Vector2 lastJoyPos = Vector2(0, 1);
+
+    float accel = 50;
+    float maxSpeed = 85;
+    float decel = 30;
+    float breakFactor = 1.2;
+
+    Vector2 lastJoyPos = Vector2(0, -1);
 
     Joystick *joystick;
     Button *btn1;
     Button *btn2;
-
-    float accel = 50;
-    float maxSpeed = 75;
-    float decel = 30;
-    float breakFactor = 1.25;
-
-    Vector2 vel;
-
-    bool hasFired = false;
     
     Vector2 rotateAround(Vector2 point){
       float angleRad = radians(rotation);
+
+      float angleCos = cos(angleRad);
+      float angleSin = sin(angleRad);
       
       float transX = point.x - pos.x;
       float transY = point.y - pos.y;
       
-      float rotatedX = transX * cos(angleRad) - transY * sin(angleRad);
-      float rotatedY = transX * sin(angleRad) + transY * cos(angleRad);
+      float rotatedX = transX * angleCos - transY * angleSin;
+      float rotatedY = transX * angleSin + transY * angleCos;
       
       return Vector2(rotatedX + pos.x, rotatedY + pos.y);
     }
@@ -56,39 +58,10 @@ class Player {
     Player(Adafruit_SSD1306 *display, Vector2 dimensions, Vector2 pos, float rotation, Joystick *joystick, Button *btn1, Button *btn2) : 
       display(display), dim(dimensions), pos(pos), rotation(rotation), joystick(joystick), btn1(btn1), btn2(btn2) {}
 
-    void render(){
-      Vector2 top = rotateAround(Vector2(pos.x, pos.y - dim.y / 2));
-      Vector2 left = rotateAround(Vector2(pos.x + dim.x / 2, pos.y + dim.y / 2));
-      Vector2 right = rotateAround(Vector2(pos.x - dim.x / 2, pos.y + dim.y / 2));
-
-      display->fillTriangle(
-        top.x, top.y,
-        left.x, left.y,
-        right.x, right.y,
-        1 
-      );
-
-      // bool wrapX = (top.x < 0) || (top.x >= SCREEN_WIDTH) || (left.x < 0) || (left.x >= SCREEN_WIDTH) || (right.x < 0) || (right.x >= SCREEN_WIDTH);
-      // bool wrapY = (top.y < 0) || (top.y >= SCREEN_HEIGHT) || (left.y < 0) || (left.y >= SCREEN_HEIGHT) || (right.y < 0) || (right.y >= SCREEN_HEIGHT);
-
-      bool wrapX = findLowest(top.x, left.x, right.x) < 0 || findLargest(top.x, left.x, right.x) >= SCREEN_WIDTH;
-      bool wrapY = findLowest(top.y, left.y, right.y) < 0 || findLargest(top.y, left.y, right.y) >= SCREEN_HEIGHT;
-
-      //check if vertexes are <0 or >dimensions
-      int xOffset = wrapX ? (findLowest(top.x, left.x, right.x) < 0 ? SCREEN_WIDTH : -SCREEN_WIDTH) : 0;
-      int yOffset = wrapY ? (findLowest(top.y, left.y, right.y) < 0 ? SCREEN_HEIGHT : -SCREEN_HEIGHT) : 0;
-
-      if (wrapX || wrapY){
-        display->fillTriangle(
-          top.x + xOffset, top.y + yOffset,
-          left.x + xOffset, left.y + yOffset,
-          right.x + xOffset, right.y + yOffset,
-          1
-        );
-      }
-    }
     void update(float deltaTime){
       deltaTime /= 1000.0;
+
+      static bool hasFired = false;
       
       if (joystick->getDeg() != -1){ 
         rotation = joystick->getDeg();
@@ -96,7 +69,7 @@ class Player {
       }
 
 
-      float magnitude = sqrt(vel.x * vel.x + vel.y * vel.y);
+      float magnitude = magnitude(vel.x, vel.y);
       float decelRate = decel * deltaTime;
       float deMag = magnitude - decelRate;
 
@@ -112,18 +85,21 @@ class Player {
       else
         vel.y *= (decelRate >= magnitude ? 0 : deMag / magnitude) / (breakOn ? breakFactor : 1);
 
-      magnitude = sqrt(vel.x * vel.x + vel.y * vel.y);
+
+      magnitude = magnitude(vel.x, vel.y);
       if (magnitude > maxSpeed){
         vel.x *= maxSpeed / magnitude;
         vel.y *= maxSpeed / magnitude;
       }
-      magnitude = sqrt(vel.x * vel.x + vel.y * vel.y);
+      magnitude = magnitude(vel.x, vel.y);
+
 
       pos.x += vel.x * deltaTime;
       pos.y += vel.y * deltaTime;
       
       pos.x = fmod(pos.x + SCREEN_WIDTH, SCREEN_WIDTH);
       pos.x += pos.x < 0 ? SCREEN_WIDTH : 0;
+
       pos.y = fmod(pos.y + SCREEN_HEIGHT, SCREEN_HEIGHT);
       pos.y += pos.y < 0 ? SCREEN_HEIGHT : 0;
 
@@ -133,6 +109,34 @@ class Player {
         
         bullets.add(Bullet(display, pos, lastJoyPos, magnitude));
       }else if (!btn2->getState() && hasFired) hasFired = false;
+    }
+    
+    void render(){
+      Vector2 top = rotateAround(Vector2(pos.x, pos.y - dim.y / 2));
+      Vector2 left = rotateAround(Vector2(pos.x + dim.x / 2, pos.y + dim.y / 2));
+      Vector2 right = rotateAround(Vector2(pos.x - dim.x / 2, pos.y + dim.y / 2));
+
+      display->fillTriangle(
+        top.x, top.y,
+        left.x, left.y,
+        right.x, right.y,
+        1 
+      );
+
+      bool wrapX = findLowest(top.x, left.x, right.x) < 0 || findHighest(top.x, left.x, right.x) >= SCREEN_WIDTH;
+      bool wrapY = findLowest(top.y, left.y, right.y) < 0 || findHighest(top.y, left.y, right.y) >= SCREEN_HEIGHT;
+      
+      if (wrapX || wrapY){
+        int xOffset = wrapX ? (findLowest(top.x, left.x, right.x) < 0 ? SCREEN_WIDTH : -SCREEN_WIDTH) : 0;
+        int yOffset = wrapY ? (findLowest(top.y, left.y, right.y) < 0 ? SCREEN_HEIGHT : -SCREEN_HEIGHT) : 0;
+
+        display->fillTriangle(
+          top.x + xOffset, top.y + yOffset,
+          left.x + xOffset, left.y + yOffset,
+          right.x + xOffset, right.y + yOffset,
+          1
+        );
+      }
     }
 };
 

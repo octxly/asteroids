@@ -27,12 +27,10 @@ class Bullet{
       pos.x += dir.x * speed * deltaTime;
       pos.y += dir.y * speed * deltaTime;
       
-      if(pos.x > SCREEN_WIDTH || pos.x < 0 || pos.y > SCREEN_HEIGHT || pos.y < 0) markedDelete = true;
+      if(pos.x >= SCREEN_WIDTH || pos.x < 0 || pos.y >= SCREEN_HEIGHT || pos.y < 0) markedDelete = true;
     }
     
-    void render() {
-      display->drawPixel(pos.x, pos.y, 1);
-    }
+    void render() { display->drawPixel(pos.x, pos.y, 1); }
 };
 
 #endif

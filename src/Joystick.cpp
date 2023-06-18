@@ -32,18 +32,13 @@ class Joystick {
     }
 
     Vector2 getNormalized(){
-      float magnitude = sqrt(value.x * value.x + value.y * value.y);
+      float magnitude = sqrt(sq(value.x) + sq(value.y));
 
       return Vector2(value.x / magnitude, value.y / magnitude);
     }
 
     float getDeg(){
-      if (value.x == 0 && value.y == 0) return -1; 
-      
-      // float angleRad = atan2(value.x, -value.y);
-      // float angleDeg = (angleRad * 180.0 / PI);
-
-      return degrees(atan2(value.x, -value.y));
+      return value.x == 0 && value.y == 0 ? -1 : degrees(atan2(value.x, -value.y));
     }
 };
 

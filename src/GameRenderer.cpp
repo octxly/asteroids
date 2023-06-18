@@ -42,7 +42,6 @@ class GameRenderer{
       // });
       
       player->render();
-       
     }
 
     // void addAsteroid(Asteroid asteroid){ asteroids.add(asteroid); }
