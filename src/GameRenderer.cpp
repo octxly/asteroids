@@ -1,6 +1,7 @@
 #ifndef GAMERENDERER
 #define GAMERENDERER
 
+#include <Adafruit_SSD1306.h>
 #include "Player.cpp"
 #include "Bullet.cpp"
 #include "ArrayList.cpp"
@@ -8,18 +9,23 @@
 
 class GameRenderer{
   private:
+    Adafruit_SSD1306 *display;
+
     Player *player;
-    // ArrayList<Asteroid, 30> asteroids;
+ 
+    ArrayList<Asteroid, 10> asteroids;
 
     // int asteroidInterval = 15 * 1000;
     // unsigned long lastAsteroidSpawn = 0;
 
   public:
+    GameRenderer(Adafruit_SSD1306 *display) : display(display) {}
+
     void setPlayer(Player *plr){ player = plr; }
 
     void update(float deltaTime){
       // if (lastAsteroidSpawn + asteroidInterval < millis()){
-      //   asteroids.add(Asteroid(Vector2(), Vector2()));
+      //   asteroids.add(Asteroid(display, Vector2(100, 50), Vector2(0, -1), 0));
       //   lastAsteroidSpawn = millis();
       // }
 
@@ -35,9 +41,10 @@ class GameRenderer{
 
 
       // asteroids.forEach([this, deltaTime](Asteroid *element){
-      //   if (!element->markedDelete)
+      //   if (!element->markedDelete){
       //     element->update(deltaTime);
-      //   else
+      //     element->render();
+      //   }else
       //     asteroids.remove(element);
       // });
       

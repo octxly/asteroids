@@ -20,7 +20,7 @@ Joystick joystick(A6, A7);
 Button btn1(2);
 Button btn2(3);
 
-GameRenderer gameRenderer;
+GameRenderer gameRenderer(&display);
 
 Player player(&display, Vector2(6, 8), Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), 0, &joystick, &btn1, &btn2);
 

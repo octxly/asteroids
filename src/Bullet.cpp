@@ -2,7 +2,7 @@
 #define BULLET
 
 #include <Adafruit_SSD1306.h>
-#include "Vector.cpp"
+#include "Vector.h"
 #include <Arduino.h>
 
 #define SCREEN_WIDTH 128

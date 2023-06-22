@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "Vector.cpp"
+#include "Vector.h"
 #include "Joystick.cpp"
 #include "Button.cpp"
 #include "ArrayList.cpp"
@@ -85,7 +85,7 @@ class Player {
       else
         vel.y *= (decelRate >= magnitude ? 0 : deMag / magnitude) / (breakOn ? breakFactor : 1);
 
-
+      
       magnitude = magnitude(vel.x, vel.y);
       if (magnitude > maxSpeed){
         vel.x *= maxSpeed / magnitude;
@@ -96,7 +96,7 @@ class Player {
 
       pos.x += vel.x * deltaTime;
       pos.y += vel.y * deltaTime;
-      
+    
       pos.x = fmod(pos.x + SCREEN_WIDTH, SCREEN_WIDTH);
       pos.x += pos.x < 0 ? SCREEN_WIDTH : 0;
 
