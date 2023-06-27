@@ -2,7 +2,7 @@
 #define JOYSTICK
 
 #include <Arduino.h>
-#include "Vector.h"
+#include "Vector.cpp"
 
 class Joystick {
   private:

@@ -3,9 +3,8 @@
 
 #include <Adafruit_SSD1306.h>
 #include "Player.cpp"
-#include "Bullet.cpp"
 #include "ArrayList.cpp"
-#include "Asteroid.cpp"
+#include "Asteroid/AsteroidManager.cpp"
 
 class GameRenderer{
   private:
@@ -13,7 +12,7 @@ class GameRenderer{
 
     Player *player;
  
-    ArrayList<Asteroid, 10> asteroids;
+    AsteroidManager asteroidManager = AsteroidManager(display);
 
     // int asteroidInterval = 15 * 1000;
     // unsigned long lastAsteroidSpawn = 0;
@@ -30,15 +29,7 @@ class GameRenderer{
       // }
 
       player->update(deltaTime);
-      
-      player->bullets.forEach([this, deltaTime](Bullet *element){
-        if (!element->markedDelete){
-          element->update(deltaTime);
-          element->render();
-        }else 
-          player->bullets.remove(element);
-      });
-
+      player->bulletManager.update(deltaTime);
 
       // asteroids.forEach([this, deltaTime](Asteroid *element){
       //   if (!element->markedDelete){
@@ -49,6 +40,7 @@ class GameRenderer{
       // });
       
       player->render();
+      player->bulletManager.render();
     }
 
     // void addAsteroid(Asteroid asteroid){ asteroids.add(asteroid); }

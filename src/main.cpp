@@ -1,11 +1,10 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#include "Button.cpp"
-#include "Joystick.cpp"
+#include "./Input/Button.cpp"
+#include "./Input/Joystick.cpp"
 #include "Player.cpp"
 #include "GameRenderer.cpp"
-#include "Bullet.cpp"
 #include "ArrayList.cpp"
 
 #define ULONG_MAX 4294967295UL
@@ -39,7 +38,7 @@ void loop() {
   display.clearDisplay();
   joystick.updateJoystick();
 
-  gameRenderer.update(delta);
+  gameRenderer.update(delta / 1000.0);
 
   display.display();
 

@@ -1,4 +1,11 @@
-#include "Vector.h"
+#ifndef VECTOR
+#define VECTOR
 
-Vector2::Vector2() : x(0), y(0) {}
-Vector2::Vector2(float x, float y) : x(x), y(y) {}
+struct Vector2 {
+  float x;
+  float y;
+
+  Vector2(float x = 0, float y = 0) : x(x), y(y) {}
+};
+
+#endif

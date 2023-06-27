@@ -4,17 +4,18 @@
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "Vector.h"
-#include "Joystick.cpp"
-#include "Button.cpp"
+#include "Vector.cpp"
+#include "./Input/Joystick.cpp"
+#include "./Input/Button.cpp"
 #include "ArrayList.cpp"
-#include "Bullet.cpp"
+#include "./Bullet/BulletManager.cpp"
+#include "./Bullet/Bullet.cpp"
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
-#define findLowest(a, b, c) (a<b?a:b<c?b:c)
-#define findHighest(a, b, c) (a>b?a:b>c?b:c)
+#define findLowest(a, b, c) (min(min((a), (b)), (c)))
+#define findHighest(a, b, c) (max(max((a), (b)), (c)))
 #define magnitude(a1, a2) (sqrt(sq(a1) + sq(a2)))
 
 class Player {
@@ -53,21 +54,18 @@ class Player {
     }
     
   public:
-    ArrayList<Bullet, 10> bullets;
+    BulletManager bulletManager = BulletManager(display);
   
     Player(Adafruit_SSD1306 *display, Vector2 dimensions, Vector2 pos, float rotation, Joystick *joystick, Button *btn1, Button *btn2) : 
       display(display), dim(dimensions), pos(pos), rotation(rotation), joystick(joystick), btn1(btn1), btn2(btn2) {}
 
     void update(float deltaTime){
-      deltaTime /= 1000.0;
-
       static bool hasFired = false;
       
       if (joystick->getDeg() != -1){ 
         rotation = joystick->getDeg();
         lastJoyPos = joystick->getNormalized();
       }
-
 
       float magnitude = magnitude(vel.x, vel.y);
       float decelRate = decel * deltaTime;
@@ -104,10 +102,10 @@ class Player {
       pos.y += pos.y < 0 ? SCREEN_HEIGHT : 0;
 
 
-      if (btn2->getState() && !hasFired && bullets.getMax() > bullets.getSize()){
+      if (btn2->getState() && !hasFired && bulletManager.bullets.getMax() > bulletManager.bullets.getSize()){
         hasFired = true;
         
-        bullets.add(Bullet(display, pos, lastJoyPos, magnitude));
+        bulletManager.bullets.add(Bullet(pos, lastJoyPos, magnitude));
       }else if (!btn2->getState() && hasFired) hasFired = false;
     }
     
