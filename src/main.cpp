@@ -21,7 +21,7 @@ Button btn2(3);
 
 GameRenderer gameRenderer(&display);
 
-Player player(&display, Vector2(6, 8), Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), 0, &joystick, &btn1, &btn2);
+Player player(&display, Vector2S(6, 8), Vector2S(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), 0, &joystick, &btn1, &btn2);
 
 unsigned long timer = 0;
 unsigned long delta = 0;
@@ -33,10 +33,21 @@ void setup() {
 
   gameRenderer.setPlayer(&player);
 }
-
+int availableMemory() {
+    int size = 2048;
+    byte *buf;
+    while ((buf = (byte *) malloc(--size)) == NULL);
+      free(buf);
+    return size;
+}
 void loop() {
   display.clearDisplay();
   joystick.updateJoystick();
+
+  display.setCursor(0, 0);
+  display.println(availableMemory());
+
+  sizeof(Asteroid);
 
   gameRenderer.update(delta / 1000.0);
 
@@ -47,3 +58,4 @@ void loop() {
   
   timer = millis();
 }
+

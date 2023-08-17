@@ -22,35 +22,35 @@ class AsteroidManager{
         AsteroidParams stages[2] = { AsteroidParams(8, 10, 0.65, 1.35), AsteroidParams(6, 5, 0.65, 1.35) };
 
 
-        Vector2 rotateAround(Vector2 point, float deg){
-            float angleRad = radians(deg);
+        // Vector2F rotateAround(Vector2S point, float deg){
+        //     float angleRad = radians(deg);
 
-            float angleCos = cos(angleRad);
-            float angleSin = sin(angleRad);
+        //     float angleCos = cos(angleRad);
+        //     float angleSin = sin(angleRad);
             
-            float rotatedX = point.x * angleCos - point.y * angleSin;
-            float rotatedY = point.x * angleSin + point.y * angleCos;
+        //     float rotatedX = point.x * angleCos - point.y * angleSin;
+        //     float rotatedY = point.x * angleSin + point.y * angleCos;
             
-            return Vector2(rotatedX, rotatedY);
-        }
+        //     return Vector2(rotatedX, rotatedY);
+        // }
+ 
+        // void calcVertex(Vector2S vertices[], int stage){
+        //     float degInterval = 360.0 / stages[stage].numVertex;
 
-        void calcVertex(Vector2 vertices[], int stage){
-            float degInterval = 360.0 / stages[stage].numVertex;
+        //     int radius = stages[stage].radius;
 
-            int radius = stages[stage].radius;
+        //     for (int i = 0; i < stages[stage].numVertex; ++i){
+        //         Vector2S point = rotateAround(Vector2S(0, -radius), degInterval * i);
 
-            for (int i = 0; i < stages[stage].numVertex; ++i){
-                Vector2 point = rotateAround(Vector2(0, -radius), degInterval * i);
+        //         float magnitude = magnitude(point.getX(), point.getY());
+        //         float newMag = random(stages[stage].minMag * radius * 1000, stages[stage].maxMag * radius * 1000) / 1000.0;
 
-                float magnitude = magnitude(point.x, point.y);
-                float newMag = random(stages[stage].minMag * radius * 1000, stages[stage].maxMag * radius * 1000) / 1000.0;
+        //         point.x *= newMag / magnitude;
+        //         point.y *= newMag / magnitude;
 
-                point.x *= newMag / magnitude;
-                point.y *= newMag / magnitude;
-
-                vertices[i] = point;
-            }
-        }
+        //         vertices[i] = point;
+        //     }
+        // }
 
     public:
         ArrayList<Asteroid, 10> asteroids;

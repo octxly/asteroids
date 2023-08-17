@@ -12,7 +12,7 @@ class GameRenderer{
 
     Player *player;
  
-    AsteroidManager asteroidManager = AsteroidManager(display);
+    // AsteroidManager asteroidManager = AsteroidManager(display);
 
     // int asteroidInterval = 15 * 1000;
     // unsigned long lastAsteroidSpawn = 0;

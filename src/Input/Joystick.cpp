@@ -16,7 +16,7 @@ class Joystick {
     }
   
   public:
-    Vector2 value;
+    Vector2F value;
   
     Joystick(int analogX, int analogY){
       pinMode(analogX, INPUT);
@@ -31,10 +31,10 @@ class Joystick {
       value.y = r(analogRead(pinY));
     }
 
-    Vector2 getNormalized(){
+    Vector2S getNormalized(){
       float magnitude = sqrt(sq(value.x) + sq(value.y));
 
-      return Vector2(value.x / magnitude, value.y / magnitude);
+      return Vector2S(value.x / magnitude, value.y / magnitude);
     }
 
     float getDeg(){

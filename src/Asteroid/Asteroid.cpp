@@ -1,24 +1,20 @@
 #ifndef ASTEROID
 #define ASTEROID
 
+#include <Arduino.h>
 #include "Vector.cpp"
 #include "AsteroidParams.cpp"
 
 struct Asteroid{
-    Vector2 pos;
-    Vector2 dir;
+    Vector2S pos;
+    Vector2S dir;
 
-    // Vector2 rotDir;
-    // float rotation;
-    // float speed = 25;
+    uint8_t stage;
 
-    int stage;
+    // Vector2S vertices[8];
+    short vMags[8];
 
-    Vector2 vertices[8];
-
-    bool markedDelete = false;
-
-    Asteroid(Vector2 pos = Vector2(), Vector2 dir = Vector2(), int stage = 0) : 
+    Asteroid(Vector2S pos = Vector2S(), Vector2S dir = Vector2S(), uint8_t stage = 0) : 
         pos(pos), dir(dir), stage(stage) {}
 };
 

@@ -16,10 +16,12 @@ class BulletManager{
 
         void update(float deltaTime){
             bullets.forEach([this, deltaTime](Bullet *element){
-                element->pos.x += element->dir.x * element->speed * deltaTime;
-                element->pos.y += element->dir.y * element->speed * deltaTime;
+                // element->pos.x += element->dir.x * element->speed * deltaTime;
+                // element->pos.y += element->dir.y * element->speed * deltaTime;
+                element->pos.setX(element->pos.getX() + element->dir.getX() * element->speed * deltaTime);
+                element->pos.setY(element->pos.getY() + element->dir.getY() * element->speed * deltaTime);
 
-                if (element->markedDelete || element->pos.x >= SCREEN_WIDTH || element->pos.x < 0 || element->pos.y >= SCREEN_HEIGHT || element->pos.y < 0)
+                if (element->pos.getX() >= SCREEN_WIDTH || element->pos.getX() < 0 || element->pos.getY() >= SCREEN_HEIGHT || element->pos.getY() < 0)
                     bullets.remove(element);
             });
         }
