@@ -13,7 +13,7 @@ class Button{
         this->pin = pin;
       }
 
-      uint8_t getState(){ return digitalRead(pin); }
+      bool getState(){ return digitalRead(pin); }
 };
 
 #endif

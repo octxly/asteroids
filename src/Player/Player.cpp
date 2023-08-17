@@ -17,7 +17,6 @@
 #define ACCEL 50
 #define DECEL 30
 #define MAXSPD 85
-#define BRKFCTR 1.2
 
 class Player{
     private:
@@ -63,19 +62,17 @@ class Player{
             float decelRate = DECEL * deltaTime;
             float deMag = magnitude - decelRate;
 
-            bool breakOn = btn1.getState();
-
             Vector2<float> joyPos = joystick.readRaw(); //different from lastJoyPos since this runs even if joystick not actuated
 
-            if (joyPos.x != 0 && !breakOn)
+            if (joyPos.x != 0 && btn1.getState())
                 vel.x += ACCEL * joyPos.x * deltaTime;
             else 
-                vel.x *= (decelRate >= magnitude ? 0 : deMag / magnitude) / (breakOn ? BRKFCTR : 1);
+                vel.x *= decelRate >= magnitude ? 0 : deMag / magnitude;
 
-            if (joyPos.y != 0 && !breakOn)
+            if (joyPos.y != 0 && btn1.getState())
                 vel.y += ACCEL * joyPos.y * deltaTime;
             else 
-                vel.y *= (decelRate >= magnitude ? 0 : deMag / magnitude) / (breakOn ? BRKFCTR : 1);
+                vel.y *= decelRate >= magnitude ? 0 : deMag / magnitude;
 
             magnitude = magnitude(vel.x, vel.y);
             if (magnitude > MAXSPD){
