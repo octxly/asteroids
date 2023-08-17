@@ -1,13 +1,14 @@
 #ifndef ARRAYLIST
 #define ARRAYLIST
 
-#include <Function_objects.h>
+#include <Arduino.h>
 
-template <class T, int size>
-class ArrayList{
+//Wrapper for an array that gives me more utility
+template <class T, uint8_t size>
+class List{
   private:
     T arr[size];
-    int numElements = 0;
+    uint8_t numElements = 0;
 
   public:
     void add(T obj){
@@ -19,10 +20,10 @@ class ArrayList{
     void remove(T *obj){
       if (numElements == 0) return;
 
-      for (int i = 0; i < numElements; i++){
+      for (uint8_t i = 0; i < numElements; i++){
         if (&(arr[i]) == obj){
           
-          for (int j = i; j < numElements - 1; j++)
+          for (uint8_t j = i; j < numElements - 1; j++)
             arr[j] = arr[j + 1];
 
           numElements--;
@@ -32,8 +33,9 @@ class ArrayList{
       }
     }
 
-    void forEach(FunctionObject<void(T*)> callback){
-      for(int i = 0; i < numElements; i++)
+    template <typename Lambda>
+    void forEach(Lambda callback){
+      for(uint8_t i = 0; i < numElements; i++)
         callback(&(arr[i]));
     }
 

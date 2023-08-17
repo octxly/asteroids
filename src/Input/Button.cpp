@@ -3,18 +3,17 @@
 
 #include <Arduino.h>
 
-class Button {
+class Button{
     private:
-      int pin;
-      int state = 0;
+      uint8_t pin;
       
     public: 
-      Button(int pin){
+      Button(uint8_t pin){
         pinMode(pin, INPUT);
         this->pin = pin;
       }
 
-      int getState(){ return digitalRead(pin); }
+      uint8_t getState(){ return digitalRead(pin); }
 };
 
 #endif
