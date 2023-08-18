@@ -14,15 +14,15 @@
 #define findHighest(a, b, c) (max(max((a), (b)), (c)))
 #define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
 
-#define ACCEL 50
+#define ACCEL 45
 #define DECEL 30
-#define MAXSPD 85
+#define MAXSPD 60
 
 class Player{
     private:
         Vector2<uint8_t> dim; //dimensions aren't large = +255
         Vector2<float> pos; //regular. tried fixed-point representation, but it was too off-putting
-        Vector2<float> vel; //regular. tried fixed-point representation, but it was too off-putting
+        Vector2<float> vel; //same as above
         float rotation;
 
         Vector2<float> lastJoyPos;
@@ -74,20 +74,21 @@ class Player{
             else 
                 vel.y *= decelRate >= magnitude ? 0 : deMag / magnitude;
 
-            magnitude = magnitude(vel.x, vel.y);
+            //This kinda sucks and is slow, but I'm yet to find a workaround.
+            // magnitude = magnitude(vel.x, vel.y); //This could potentially be removed 
             if (magnitude > MAXSPD){
                 vel.x *= MAXSPD / magnitude;
                 vel.y *= MAXSPD / magnitude;
             }
-            magnitude = magnitude(vel.x, vel.y);
 
             pos.x += vel.x * deltaTime;
             pos.y += vel.y * deltaTime;
 
-            pos.x = fmod(pos.x + SCREEN_WIDTH, SCREEN_WIDTH);
+            //REVISE THESE
+            pos.x -= pos.x > SCREEN_WIDTH ? SCREEN_WIDTH : 0;
             pos.x += pos.x < 0 ? SCREEN_WIDTH : 0;
-
-            pos.y = fmod(pos.y + SCREEN_HEIGHT, SCREEN_HEIGHT);
+            
+            pos.y -= pos.y > SCREEN_HEIGHT ? SCREEN_HEIGHT : 0;
             pos.y += pos.y < 0 ? SCREEN_HEIGHT : 0;
 
             static bool hasFired = false;

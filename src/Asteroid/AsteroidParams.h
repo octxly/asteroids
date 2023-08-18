@@ -8,13 +8,13 @@
 #define L_MIN_MAG 0.65
 #define L_MAX_MAG 1.35
 #define L_SPEED 15
-#define L_SP_FREQ 2 //Large and small spawn frequencies are ratios!
+#define L_SP_FREQ 3 //Large and small spawn frequencies are ratios!
 
 #define S_N_VERTEX 6
 #define S_RAD 5
 #define S_MIN_MAG 0.65
 #define S_MAX_MAG 1.35
 #define S_SPEED 20
-#define S_SP_FREQ 1
+#define S_SP_FREQ 2
 
 #endif

@@ -29,7 +29,7 @@ class Game{
                 lastAstSpawn = millis();
             }
 
-            //UPDATE LOOPS
+            //UPDATE - Update physics and variables.
             player.update(deltaTime);
             player.bullets.forEach([this, deltaTime](Bullet *element){
                 element->update(deltaTime);
@@ -42,9 +42,9 @@ class Game{
                 if (element->markedDelete) asteroids.remove(element);
             });
 
-            //INSERT COLLISION CHECKING
+            //INSERT COLLISION CHECKING HERE
 
-            //RENDER LOOPS
+            //RENDER - Actually draw things on screen.
             player.render(display);
             player.bullets.forEach([this](Bullet *element){
                 element->render(display);
@@ -58,7 +58,7 @@ class Game{
             Vector2<int16_t> position;
             Vector2<int16_t> destination;
 
-            uint8_t maxRad = L_MAX_MAG * L_RAD;
+            uint8_t maxRad = ceil(L_MAX_MAG * L_RAD);
 
             switch(random(4)){
                 case 0: //Top edge

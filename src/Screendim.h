@@ -1,5 +1,5 @@
-#ifndef UTIL 
-#define UTIL
+#ifndef SCREENDIM
+#define SCREENDIM
 
 //Full dim are the physical dimensions of the screen while regular dim are simulated dim (USED ONLY BY ADAFRUIT SCREEN LIBRARY)
 #define SCREEN_WIDTH 128

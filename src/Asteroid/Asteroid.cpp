@@ -9,9 +9,8 @@
 
 class Asteroid{
     private:
-        // Vector2<uint8_t> pos; //whole-number only
         Vector2<int16_t> pos;
-        Vector2<int8_t> dir; //normalized
+        Vector2<int8_t> dir; //normalized +/-1.27
 
         uint8_t stage = 0;
 
