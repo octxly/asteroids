@@ -35,9 +35,9 @@ void loop() {
     display.clearDisplay();
 
     //dev stuff
-    display.setCursor(0, 0);
-    // display.println(String(avRam));
-    display.println(String(1000.0 / delta));
+    // display.setCursor(0, 0);
+    // // display.println(String(avRam));
+    // display.println(String(1000.0 / delta));
 
     game.update(delta / 1000.0); //Game loop.
 

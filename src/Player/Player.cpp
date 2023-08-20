@@ -3,26 +3,26 @@
 
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
-#include "Vector2.cpp"
+#include "Vector/Vector2.cpp"
 #include "Input/Joystick.cpp"
 #include "Input/Button.cpp"
 #include "Player/Bullet.cpp"
 #include "List.cpp"
 #include "Screendim.h"
 
+#define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
 #define findLowest(a, b, c) (min(min((a), (b)), (c)))
 #define findHighest(a, b, c) (max(max((a), (b)), (c)))
-#define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
 
 #define ACCEL 45
 #define DECEL 30
 #define MAXSPD 60
 
 class Player{
-    private:
-        Vector2<uint8_t> dim; //dimensions aren't large = +255
+    public:
         Vector2<float> pos; //regular. tried fixed-point representation, but it was too off-putting
-        Vector2<float> vel; //same as above
+        Vector2<uint8_t> dim; //dimensions aren't large = +255
+        Vector2<float> vel; //regular. tried fixed-point representation, but it was too off-putting
         float rotation;
 
         Vector2<float> lastJoyPos;
@@ -46,11 +46,10 @@ class Player{
             );
         }
 
-    public:
         List<Bullet, 10> bullets;
-
+        
         Player(Vector2<uint8_t> dim, Vector2<float> pos, float rotation) :
-            dim(dim), pos(pos), rotation(rotation) {}
+            pos(pos), dim(dim), rotation(rotation) {}
 
         void update(float deltaTime){
             if (joystick.xActuated() || joystick.yActuated()){
@@ -99,6 +98,7 @@ class Player{
                 bullets.add(Bullet(Vector2<uint8_t>(pos.x, pos.y), Vector2<int8_t>(lastJoyPos.x * 100, lastJoyPos.y * 100)));
             } else if (!btn2.getState() && hasFired) hasFired = false;
         }
+
         void render(Adafruit_SSD1306 *display){
             Vector2<float> top = rotateAround(Vector2<float>(pos.x, pos.y - dim.y / 2));
             Vector2<float> left = rotateAround(Vector2<float>(pos.x + dim.x / 2, pos.y + dim.y / 2));

@@ -9,8 +9,10 @@
 #include "Asteroid/AsteroidParams.h"
 #include "Screendim.h"
 
+#define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
+
 class Game{
-    private:
+    public:
         Adafruit_SSD1306 *display; //gameobjects' render() take display pointer as an arguement cuz for some reason pointers are 8 bytes
 
         List<Asteroid, 15> asteroids = List<Asteroid, 15>();
@@ -20,8 +22,19 @@ class Game{
         unsigned long lastAstSpawn = 0;
         uint16_t astInterval = SPAWNRATE * 1000;
 
-    public:
         Game(Adafruit_SSD1306 *display) : display(display) {}
+
+        Vector2<float> rotateAround(Vector2<float> point, uint16_t rotation){
+            float angleRad = radians(rotation);
+
+            float angleCos = cos(angleRad);
+            float angleSin = sin(angleRad);
+            
+            return Vector2<float>(
+                point.x * angleCos - point.y * angleSin, 
+                point.x * angleSin + point.y * angleCos
+            );
+        }
 
         void update(float deltaTime){
             if (millis() > lastAstSpawn + astInterval){
@@ -31,18 +44,24 @@ class Game{
 
             //UPDATE - Update physics and variables.
             player.update(deltaTime);
-            player.bullets.forEach([this, deltaTime](Bullet *element){
-                element->update(deltaTime);
+            player.bullets.forEach([this, deltaTime](Bullet *bullet){
+                bullet->update(deltaTime);
 
-                if (element->markedDelete) player.bullets.remove(element);
+                if (bullet->markedDelete) player.bullets.remove(bullet);
+                else checkAsteroidCollisions(bullet);
             });
             asteroids.forEach([this, deltaTime](Asteroid *element){
                 element->update(deltaTime);
 
                 if (element->markedDelete) asteroids.remove(element);
-            });
+                else{
+                    //Player collisions
+                    float distance = magnitude(element->pos.x / 100.0 - player.pos.x, element->pos.y / 100.0 - player.pos.y);
 
-            //INSERT COLLISION CHECKING HERE
+                    if (distance < (element->stage ? S_RAD : L_RAD) + player.dim.x / 2)
+                        asteroids.remove(element);
+                }
+            });
 
             //RENDER - Actually draw things on screen.
             player.render(display);
@@ -88,11 +107,50 @@ class Game{
             uint8_t asteroidSpawnChance = random(S_SP_FREQ + L_SP_FREQ);
             asteroids.add(Asteroid(position, Vector2<int8_t>(direction.x * 100, direction.y * 100), asteroidSpawnChance < S_SP_FREQ));
         }
-
         Vector2<float> normalize(Vector2<float> in){
             float magnitude = sqrt(sq(in.x) + sq(in.y));
 
             return Vector2<float>(in.x / magnitude, in.y / magnitude);
+        }
+
+        void checkAsteroidCollisions(Bullet *bullet){
+            asteroids.forEach([this, bullet](Asteroid *asteroid){
+                //Bullet collisions with asteroids
+                float distance = magnitude(asteroid->pos.x / 100.0 - bullet->pos.x, asteroid->pos.y / 100.0 - bullet->pos.y);
+
+                //If measured distance is smaller than asteroid radius
+                if (distance < (asteroid->stage ? S_RAD : L_RAD)){
+                    if (asteroid->stage) asteroids.remove(asteroid);
+                    else {
+                        //First random direction
+                        Vector2<float> newDir1 = rotateAround(
+                            Vector2<float>(asteroid->dir.x / 100.0, asteroid->dir.y / 100.0),
+                            random(SPLIT_DIFF)
+                        );
+
+                        //Second random direction
+                        Vector2<float> newDir2 = rotateAround(
+                            Vector2<float>(asteroid->dir.x / 100.0, asteroid->dir.y / 100.0),
+                            -random(SPLIT_DIFF)
+                        );
+
+                        //Changing first asteroid
+                        asteroid->dir = Vector2<int8_t>(newDir1.x * 100, newDir1.y * 100);
+                        asteroid->stage = 1;
+                        asteroid->calcMags();
+
+                        //Adding another split asteroid
+                        asteroids.add(Asteroid(
+                            asteroid->pos,
+                            Vector2<int8_t>(newDir2.x * 100, newDir2.y * 100),
+                            1
+                        ));
+                    }
+
+                    //Destroy bullet
+                    player.bullets.remove(bullet);
+                }
+            });
         }
 };
 

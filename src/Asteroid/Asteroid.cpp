@@ -3,16 +3,17 @@
 
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
-#include "Vector2.cpp"
+#include "Vector/Vector2.cpp"
 #include "Screendim.h"
 #include "Asteroid/AsteroidParams.h"
 
 class Asteroid{
-    private:
+    public:
         Vector2<int16_t> pos;
         Vector2<int8_t> dir; //normalized +/-1.27
 
         uint8_t stage = 0;
+        bool markedDelete = false;
 
         uint8_t vMags[L_N_VERTEX]; // +25.5 
 
@@ -38,9 +39,6 @@ class Asteroid{
                 vMags[i] = random((stage ? S_MIN_MAG : L_MIN_MAG) * radius * 2, (stage ? S_MAX_MAG : L_MAX_MAG) * radius * 2) / 2.0;
             }
         }
-
-    public:
-        bool markedDelete = false;
 
         Asteroid(Vector2<int16_t> pos = Vector2<int16_t>(), Vector2<int8_t> dir = Vector2<int8_t>(), uint8_t stage = 0) :
             pos(pos), dir(dir), stage(stage) { calcMags(); }

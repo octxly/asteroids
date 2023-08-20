@@ -3,17 +3,16 @@
 
 #include <Adafruit_SSD1306.h>
 #include <Arduino.h>
-#include "Vector2.cpp"
+#include "Vector/Vector2.cpp"
 #include "Screendim.h"
 
 #define SPEED 100
 
 class Bullet{
-    private:
+    public:
         Vector2<uint8_t> pos; //only need 0-127 max = +255
         Vector2<int8_t> dir; // +/- 1.28 input value is normalized
 
-    public:
         bool markedDelete = false;
 
         Bullet(Vector2<uint8_t> pos = Vector2<uint8_t>(), Vector2<int8_t> dir = Vector2<int8_t>()) :

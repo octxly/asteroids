@@ -1,7 +1,8 @@
 #ifndef ASTEROIDPARAMS
 #define ASTEROIDPARAMS
 
-#define SPAWNRATE 2
+#define SPAWNRATE 1
+#define SPLIT_DIFF 60 //After a large asteroid is hit, change in direction in degrees
 
 #define L_N_VERTEX 8
 #define L_RAD 10 //MAX 25.5 RADIUS DUE TO INTEGER OVERFLOW
