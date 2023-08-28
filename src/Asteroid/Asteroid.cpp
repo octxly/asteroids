@@ -50,7 +50,7 @@ class Asteroid{
             pos.y += dir.y * speed * deltaTime;
 
             //Deletion maxRad has to be slightly larger because otherwise it interferes with spawning.
-            float maxRad = (stage ? S_RAD * S_MAX_MAG : L_RAD * L_MAX_MAG) * 1.2;
+            float maxRad = L_RAD * L_MAX_MAG * 1.05;
             
             //would lower readability tho
             if(pos.x / 100.0 - maxRad >= SCREEN_WIDTH || pos.x / 100.0 + maxRad == 0 || pos.y / 100.0 - maxRad >= SCREEN_HEIGHT || pos.y / 100.0 + maxRad == 0) markedDelete = true;

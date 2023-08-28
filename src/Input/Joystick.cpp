@@ -22,12 +22,9 @@ class Joystick{
         }
 
     public:
-        Joystick(uint8_t pinX, uint8_t pinY){
+        Joystick(uint8_t pinX, uint8_t pinY) : pinX(pinX), pinY(pinY) {
             pinMode(pinX, INPUT);
             pinMode(pinY, INPUT);
-
-            this->pinX = pinX;
-            this->pinY = pinY;
         }
 
         Vector2<float> readRaw(){

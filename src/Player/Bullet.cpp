@@ -25,7 +25,8 @@ class Bullet{
             
             //NOTE: can get rid of checking for 0. since its unsigned, integer overflow will make the first condition true
             //would lower readability tho
-            if(pos.x >= SCREEN_WIDTH || pos.x == 0 || pos.y >= SCREEN_HEIGHT || pos.y == 0) markedDelete = true;
+            // if(pos.x >= SCREEN_WIDTH || pos.x == 0 || pos.y >= SCREEN_HEIGHT || pos.y == 0) markedDelete = true;
+            if(pos.x >= SCREEN_WIDTH || pos.y >= SCREEN_HEIGHT) markedDelete = true;
         }
 
         void render(Adafruit_SSD1306 *display) { display->drawPixel(pos.x, pos.y, 1); }

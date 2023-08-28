@@ -16,16 +16,17 @@
 
 #define ACCEL 45
 #define DECEL 30
-#define MAXSPD 60
+#define MAXSPD 45
+#define RELOAD 1
 
 class Player{
     public:
         Vector2<float> pos; //regular. tried fixed-point representation, but it was too off-putting
         Vector2<uint8_t> dim; //dimensions aren't large = +255
         Vector2<float> vel; //regular. tried fixed-point representation, but it was too off-putting
-        float rotation;
+        float rotation = 0;
 
-        Vector2<float> lastJoyPos;
+        Vector2<float> lastJoyPos = Vector2<float>(0, -1);
 
         Joystick joystick = Joystick(A6, A7);
         Button btn1 = Button(2);
@@ -48,8 +49,8 @@ class Player{
 
         List<Bullet, 10> bullets;
         
-        Player(Vector2<uint8_t> dim, Vector2<float> pos, float rotation) :
-            pos(pos), dim(dim), rotation(rotation) {}
+        Player(Vector2<uint8_t> dim, Vector2<float> pos) :
+            pos(pos), dim(dim) {}
 
         void update(float deltaTime){
             if (joystick.xActuated() || joystick.yActuated()){

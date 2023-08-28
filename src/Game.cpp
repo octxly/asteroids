@@ -4,9 +4,12 @@
 #include <Adafruit_SSD1306.h>
 #include <Arduino.h>
 #include "Player/Player.cpp"
+#include "Input/Joystick.cpp"
+#include "Input/Button.cpp"
 #include "List.cpp"
 #include "Asteroid/Asteroid.cpp"
 #include "Asteroid/AsteroidParams.h"
+#include "Ouput/Led.cpp"
 #include "Screendim.h"
 
 #define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
@@ -17,10 +20,15 @@ class Game{
 
         List<Asteroid, 15> asteroids = List<Asteroid, 15>();
 
-        Player player = Player(Vector2<uint8_t>(8, 10), Vector2<float>(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0), 0);
+        Player player = Player(Vector2<uint8_t>(8, 10), Vector2<float>(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0));
 
         unsigned long lastAstSpawn = 0;
-        uint16_t astInterval = SPAWNRATE * 1000;
+        uint16_t astInterval = AST_SPAWNRATE * 1000;
+
+        uint16_t score = 0;
+        bool hasStarted = false;
+        
+        LEDControl ledControl = LEDControl(10);
 
         Game(Adafruit_SSD1306 *display) : display(display) {}
 
@@ -37,6 +45,22 @@ class Game{
         }
 
         void update(float deltaTime){
+            display->setCursor(0, 0);
+            display->print(score);
+
+            if (!hasStarted){
+                drawCentreString(true);
+                if (digitalRead(2) || digitalRead(3)) //I hardcoded the button classes here instead of using the classes for simplicity
+                    hasStarted = true;
+                return;
+            }
+            if (ledControl.lives <= 0){
+
+                drawCentreString(false);
+                ledControl.update();
+                return;
+            }
+
             if (millis() > lastAstSpawn + astInterval){
                 spawnAsteroid();
                 lastAstSpawn = millis();
@@ -58,10 +82,14 @@ class Game{
                     //Player collisions
                     float distance = magnitude(element->pos.x / 100.0 - player.pos.x, element->pos.y / 100.0 - player.pos.y);
 
-                    if (distance < (element->stage ? S_RAD : L_RAD) + player.dim.x / 2)
+                    if (distance < (element->stage ? S_RAD : L_RAD) + player.dim.x / 2){
                         asteroids.remove(element);
+                        ledControl.lives--;
+                    }  
                 }
             });
+
+            ledControl.update();
 
             //RENDER - Actually draw things on screen.
             player.render(display);
@@ -120,8 +148,10 @@ class Game{
 
                 //If measured distance is smaller than asteroid radius
                 if (distance < (asteroid->stage ? S_RAD : L_RAD)){
-                    if (asteroid->stage) asteroids.remove(asteroid);
-                    else {
+                    if (asteroid->stage){ 
+                        asteroids.remove(asteroid);
+                        score += S_POINTS;
+                    } else {
                         //First random direction
                         Vector2<float> newDir1 = rotateAround(
                             Vector2<float>(asteroid->dir.x / 100.0, asteroid->dir.y / 100.0),
@@ -145,12 +175,24 @@ class Game{
                             Vector2<int8_t>(newDir2.x * 100, newDir2.y * 100),
                             1
                         ));
+
+                        score += L_POINTS;
                     }
 
                     //Destroy bullet
                     player.bullets.remove(bullet);
                 }
             });
+        }
+
+        //The boolean is a workaround so I can save the strings in flash instead of RAM.
+        void drawCentreString(bool winMsg){ 
+            int16_t x1, y1;
+            uint16_t w, h;
+            display->getTextBounds(winMsg ? F("Press any button\n      to start!") : F("You died!"), 0, 0, &x1, &y1, &w, &h);
+
+            display->setCursor(SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - h / 2);
+            display->print(winMsg ? F("Press any button\n      to start!") : F("You died!"));
         }
 };
 
