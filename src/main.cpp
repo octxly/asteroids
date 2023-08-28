@@ -18,7 +18,7 @@ Game game(&display);
 unsigned long timer = 0;
 unsigned long delta = 0;
 
-uint16_t avRam;
+// uint16_t avRam;
 
 void setup() {
     //resetting the board (just in case)
@@ -28,16 +28,15 @@ void setup() {
 
     randomSeed(analogRead(0));
 
-    avRam = availableMemory();
+    // avRam = availableMemory();
 }
 
 void loop() {
     display.clearDisplay();
 
     //dev stuff
-    display.setCursor(0, 0);
     // display.println(String(avRam));
-    display.println(String(1000.0 / delta));
+    // display.println(String(1000.0 / delta));
 
     game.update(delta / 1000.0); //Game loop.
 
@@ -50,10 +49,10 @@ void loop() {
     timer = millis();
 }
 
-int availableMemory() {
-    int size = 2048;
-    byte *buf;
-    while ((buf = (byte *) malloc(--size)) == NULL);
-    free(buf);
-    return size;
-}
+// int availableMemory() {
+//     int size = 2048;
+//     byte *buf;
+//     while ((buf = (byte *) malloc(--size)) == NULL);
+//     free(buf);
+//     return size;
+// }

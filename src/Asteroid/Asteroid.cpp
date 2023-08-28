@@ -3,17 +3,17 @@
 
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
-#include "Vector2.cpp"
+#include "Vector/Vector2.cpp"
 #include "Screendim.h"
 #include "Asteroid/AsteroidParams.h"
 
 class Asteroid{
-    private:
-        // Vector2<uint8_t> pos; //whole-number only
+    public:
         Vector2<int16_t> pos;
-        Vector2<int8_t> dir; //normalized
+        Vector2<int8_t> dir; //normalized +/-1.27
 
         uint8_t stage = 0;
+        bool markedDelete = false;
 
         uint8_t vMags[L_N_VERTEX]; // +25.5 
 
@@ -40,9 +40,6 @@ class Asteroid{
             }
         }
 
-    public:
-        bool markedDelete = false;
-
         Asteroid(Vector2<int16_t> pos = Vector2<int16_t>(), Vector2<int8_t> dir = Vector2<int8_t>(), uint8_t stage = 0) :
             pos(pos), dir(dir), stage(stage) { calcMags(); }
 
@@ -53,7 +50,7 @@ class Asteroid{
             pos.y += dir.y * speed * deltaTime;
 
             //Deletion maxRad has to be slightly larger because otherwise it interferes with spawning.
-            float maxRad = (stage ? S_RAD * S_MAX_MAG : L_RAD * L_MAX_MAG) * 1.2;
+            float maxRad = L_RAD * L_MAX_MAG * 1.05;
             
             //would lower readability tho
             if(pos.x / 100.0 - maxRad >= SCREEN_WIDTH || pos.x / 100.0 + maxRad == 0 || pos.y / 100.0 - maxRad >= SCREEN_HEIGHT || pos.y / 100.0 + maxRad == 0) markedDelete = true;

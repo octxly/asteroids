@@ -3,30 +3,30 @@
 
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
-#include "Vector2.cpp"
+#include "Vector/Vector2.cpp"
 #include "Input/Joystick.cpp"
 #include "Input/Button.cpp"
 #include "Player/Bullet.cpp"
 #include "List.cpp"
 #include "Screendim.h"
 
+#define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
 #define findLowest(a, b, c) (min(min((a), (b)), (c)))
 #define findHighest(a, b, c) (max(max((a), (b)), (c)))
-#define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
 
-#define ACCEL 50
+#define ACCEL 45
 #define DECEL 30
-#define MAXSPD 85
-#define BRKFCTR 1.2
+#define MAXSPD 45
+#define RELOAD 1
 
 class Player{
-    private:
-        Vector2<uint8_t> dim; //dimensions aren't large = +255
+    public:
         Vector2<float> pos; //regular. tried fixed-point representation, but it was too off-putting
+        Vector2<uint8_t> dim; //dimensions aren't large = +255
         Vector2<float> vel; //regular. tried fixed-point representation, but it was too off-putting
-        float rotation;
+        float rotation = 0;
 
-        Vector2<float> lastJoyPos;
+        Vector2<float> lastJoyPos = Vector2<float>(0, -1);
 
         Joystick joystick = Joystick(A6, A7);
         Button btn1 = Button(2);
@@ -47,11 +47,10 @@ class Player{
             );
         }
 
-    public:
         List<Bullet, 10> bullets;
-
-        Player(Vector2<uint8_t> dim, Vector2<float> pos, float rotation) :
-            dim(dim), pos(pos), rotation(rotation) {}
+        
+        Player(Vector2<uint8_t> dim, Vector2<float> pos) :
+            pos(pos), dim(dim) {}
 
         void update(float deltaTime){
             if (joystick.xActuated() || joystick.yActuated()){
@@ -63,34 +62,33 @@ class Player{
             float decelRate = DECEL * deltaTime;
             float deMag = magnitude - decelRate;
 
-            bool breakOn = btn1.getState();
-
             Vector2<float> joyPos = joystick.readRaw(); //different from lastJoyPos since this runs even if joystick not actuated
 
-            if (joyPos.x != 0 && !breakOn)
+            if (joyPos.x != 0 && btn1.getState())
                 vel.x += ACCEL * joyPos.x * deltaTime;
             else 
-                vel.x *= (decelRate >= magnitude ? 0 : deMag / magnitude) / (breakOn ? BRKFCTR : 1);
+                vel.x *= decelRate >= magnitude ? 0 : deMag / magnitude;
 
-            if (joyPos.y != 0 && !breakOn)
+            if (joyPos.y != 0 && btn1.getState())
                 vel.y += ACCEL * joyPos.y * deltaTime;
             else 
-                vel.y *= (decelRate >= magnitude ? 0 : deMag / magnitude) / (breakOn ? BRKFCTR : 1);
+                vel.y *= decelRate >= magnitude ? 0 : deMag / magnitude;
 
-            magnitude = magnitude(vel.x, vel.y);
+            //This kinda sucks and is slow, but I'm yet to find a workaround.
+            // magnitude = magnitude(vel.x, vel.y); //This could potentially be removed 
             if (magnitude > MAXSPD){
                 vel.x *= MAXSPD / magnitude;
                 vel.y *= MAXSPD / magnitude;
             }
-            magnitude = magnitude(vel.x, vel.y);
 
             pos.x += vel.x * deltaTime;
             pos.y += vel.y * deltaTime;
 
-            pos.x = fmod(pos.x + SCREEN_WIDTH, SCREEN_WIDTH);
+            //REVISE THESE
+            pos.x -= pos.x > SCREEN_WIDTH ? SCREEN_WIDTH : 0;
             pos.x += pos.x < 0 ? SCREEN_WIDTH : 0;
-
-            pos.y = fmod(pos.y + SCREEN_HEIGHT, SCREEN_HEIGHT);
+            
+            pos.y -= pos.y > SCREEN_HEIGHT ? SCREEN_HEIGHT : 0;
             pos.y += pos.y < 0 ? SCREEN_HEIGHT : 0;
 
             static bool hasFired = false;
@@ -101,6 +99,7 @@ class Player{
                 bullets.add(Bullet(Vector2<uint8_t>(pos.x, pos.y), Vector2<int8_t>(lastJoyPos.x * 100, lastJoyPos.y * 100)));
             } else if (!btn2.getState() && hasFired) hasFired = false;
         }
+
         void render(Adafruit_SSD1306 *display){
             Vector2<float> top = rotateAround(Vector2<float>(pos.x, pos.y - dim.y / 2));
             Vector2<float> left = rotateAround(Vector2<float>(pos.x + dim.x / 2, pos.y + dim.y / 2));
