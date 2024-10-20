@@ -10,6 +10,7 @@
 #include "Asteroid/Asteroid.cpp"
 #include "Asteroid/AsteroidParams.h"
 #include "Ouput/Led.cpp"
+#include "Ouput/Button.h"
 #include "Screendim.h"
 
 #define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
@@ -18,7 +19,7 @@ class Game{
     public:
         Adafruit_SSD1306 *display; //gameobjects' render() take display pointer as an arguement cuz for some reason pointers are 8 bytes
 
-        List<Asteroid, 10> asteroids = List<Asteroid, 10>();
+        List<Asteroid, 11> asteroids;
 
         Player player = Player(Vector2<uint8_t>(8, 10), Vector2<float>(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0));
 
@@ -37,7 +38,7 @@ class Game{
 
             float angleCos = cos(angleRad);
             float angleSin = sin(angleRad);
-            
+
             return Vector2<float>(
                 point.x * angleCos - point.y * angleSin, 
                 point.x * angleSin + point.y * angleCos
@@ -50,7 +51,7 @@ class Game{
 
             if (!hasStarted){
                 drawCentreString(true);
-                if (digitalRead(2) || digitalRead(3)) //I hardcoded the button classes here instead of using the classes for simplicity
+                if (digitalRead(BTN1) || digitalRead(BTN2))
                     hasStarted = true;
                 return;
             }

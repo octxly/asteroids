@@ -9,6 +9,7 @@
 #include "Player/Bullet.cpp"
 #include "List.cpp"
 #include "Screendim.h"
+#include "Ouput/Button.h"
 
 #define magnitude(a1, a2) (sqrt(sq((a1)) + sq((a2))))
 #define findLowest(a, b, c) (min(min((a), (b)), (c)))
@@ -17,9 +18,6 @@
 #define ACCEL 45
 #define DECEL 30
 #define MAXSPD 45
-
-#define BTN1 2
-#define BTN2 3
 
 class Player{
     public:
@@ -47,7 +45,7 @@ class Player{
             );
         }
 
-        List<Bullet, 10> bullets;
+        List<Bullet, 8> bullets; 
         
         Player(Vector2<uint8_t> dim, Vector2<float> pos) :
             pos(pos), dim(dim) {}

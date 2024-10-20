@@ -61,7 +61,7 @@ class Asteroid{
             rotation += (rotationSpd * deltaTime) * 100;
             
             //would lower readability tho
-            if(pos.x / 100.0 - maxRad >= SCREEN_WIDTH || pos.x / 100.0 + maxRad == 0 || pos.y / 100.0 - maxRad >= SCREEN_HEIGHT || pos.y / 100.0 + maxRad == 0) markedDelete = true;
+            if(pos.x / 100.0 - maxRad >= SCREEN_WIDTH || pos.x / 100.0 + maxRad <= 0 || pos.y / 100.0 - maxRad >= SCREEN_HEIGHT || pos.y / 100.0 + maxRad <= 0) markedDelete = true;
         }
         void render(Adafruit_SSD1306 *display){
             uint16_t degInterval = 360.0 / (stage ? S_N_VERTEX : L_N_VERTEX);
