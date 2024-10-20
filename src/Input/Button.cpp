@@ -1,18 +1,18 @@
-#ifndef BUTTON
-#define BUTTON
+// #ifndef BUTTON
+// #define BUTTON
 
-#include <Arduino.h>
+// #include <Arduino.h>
 
-class Button{
-    private:
-      uint8_t pin;
+// class Button{
+//     private:
+//       uint8_t pin;
       
-    public: 
-      Button(uint8_t pin) : pin(pin) {
-        pinMode(pin, INPUT);
-      }
+//     public: 
+//       Button(uint8_t pin) : pin(pin) {
+//         pinMode(pin, INPUT);
+//       }
 
-      bool getState(){ return digitalRead(pin); }
-};
+//       bool getState(){ return digitalRead(pin); }
+// };
 
-#endif
+// #endif

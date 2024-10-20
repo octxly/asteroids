@@ -13,12 +13,14 @@ class Asteroid{
         Vector2<int8_t> dir; //normalized +/-1.27
 
         uint8_t stage = 0;
+        int8_t rotationSpd = 0;
+        uint16_t rotation = 0; // + 655.35
         bool markedDelete = false;
 
         uint8_t vMags[L_N_VERTEX]; // +25.5 
 
-        Vector2<float> rotateAround(Vector2<float> point, uint16_t rotation){
-            float angleRad = radians(rotation);
+        Vector2<float> rotateAround(Vector2<float> point, uint16_t rot){
+            float angleRad = radians(rot + (rotation / 100.0));
 
             float angleCos = cos(angleRad);
             float angleSin = sin(angleRad);
@@ -38,6 +40,10 @@ class Asteroid{
             for (uint8_t i = 0; i < (stage ? S_N_VERTEX : L_N_VERTEX); i++){
                 vMags[i] = random((stage ? S_MIN_MAG : L_MIN_MAG) * radius * 2, (stage ? S_MAX_MAG : L_MAX_MAG) * radius * 2) / 2.0;
             }
+
+            rotationSpd = random(SPIN_MAX) + 1;
+ 
+            rotationSpd *= random(2) == 0 ? 1 : -1; //Randomize spin direction;
         }
 
         Asteroid(Vector2<int16_t> pos = Vector2<int16_t>(), Vector2<int8_t> dir = Vector2<int8_t>(), uint8_t stage = 0) :
@@ -51,6 +57,8 @@ class Asteroid{
 
             //Deletion maxRad has to be slightly larger because otherwise it interferes with spawning.
             float maxRad = L_RAD * L_MAX_MAG * 1.05;
+
+            rotation += (rotationSpd * deltaTime) * 100;
             
             //would lower readability tho
             if(pos.x / 100.0 - maxRad >= SCREEN_WIDTH || pos.x / 100.0 + maxRad == 0 || pos.y / 100.0 - maxRad >= SCREEN_HEIGHT || pos.y / 100.0 + maxRad == 0) markedDelete = true;

@@ -17,7 +17,9 @@
 #define ACCEL 45
 #define DECEL 30
 #define MAXSPD 45
-#define RELOAD 1
+
+#define BTN1 2
+#define BTN2 3
 
 class Player{
     public:
@@ -29,8 +31,6 @@ class Player{
         Vector2<float> lastJoyPos = Vector2<float>(0, -1);
 
         Joystick joystick = Joystick(A6, A7);
-        Button btn1 = Button(2);
-        Button btn2 = Button(3);
 
         Vector2<float> rotateAround(Vector2<float> point){
             float angleRad = radians(rotation);
@@ -64,12 +64,12 @@ class Player{
 
             Vector2<float> joyPos = joystick.readRaw(); //different from lastJoyPos since this runs even if joystick not actuated
 
-            if (joyPos.x != 0 && btn1.getState())
+            if (joyPos.x != 0 && digitalRead(BTN1))
                 vel.x += ACCEL * joyPos.x * deltaTime;
             else 
                 vel.x *= decelRate >= magnitude ? 0 : deMag / magnitude;
 
-            if (joyPos.y != 0 && btn1.getState())
+            if (joyPos.y != 0 && digitalRead(BTN1))
                 vel.y += ACCEL * joyPos.y * deltaTime;
             else 
                 vel.y *= decelRate >= magnitude ? 0 : deMag / magnitude;
@@ -93,11 +93,13 @@ class Player{
 
             static bool hasFired = false;
 
-            if (btn2.getState() && !hasFired && bullets.getMax() > bullets.getSize()){
+            if (digitalRead(BTN2) && !hasFired && bullets.getMax() > bullets.getSize()){
                 hasFired = true;
 
                 bullets.add(Bullet(Vector2<uint8_t>(pos.x, pos.y), Vector2<int8_t>(lastJoyPos.x * 100, lastJoyPos.y * 100)));
-            } else if (!btn2.getState() && hasFired) hasFired = false;
+                
+                tone(8, 800, 50);
+            } else if (!digitalRead(BTN2) && hasFired) hasFired = false;
         }
 
         void render(Adafruit_SSD1306 *display){

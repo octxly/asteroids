@@ -18,7 +18,7 @@ class Game{
     public:
         Adafruit_SSD1306 *display; //gameobjects' render() take display pointer as an arguement cuz for some reason pointers are 8 bytes
 
-        List<Asteroid, 15> asteroids = List<Asteroid, 15>();
+        List<Asteroid, 10> asteroids = List<Asteroid, 10>();
 
         Player player = Player(Vector2<uint8_t>(8, 10), Vector2<float>(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0));
 
@@ -55,7 +55,6 @@ class Game{
                 return;
             }
             if (ledControl.lives <= 0){
-
                 drawCentreString(false);
                 ledControl.update();
                 return;
@@ -85,6 +84,7 @@ class Game{
                     if (distance < (element->stage ? S_RAD : L_RAD) + player.dim.x / 2){
                         asteroids.remove(element);
                         ledControl.lives--;
+                        tone(8, 200, 150);
                     }  
                 }
             });
@@ -181,18 +181,25 @@ class Game{
 
                     //Destroy bullet
                     player.bullets.remove(bullet);
+
+                    tone(8, 300, 100);
                 }
             });
         }
 
         //The boolean is a workaround so I can save the strings in flash instead of RAM.
         void drawCentreString(bool winMsg){ 
-            int16_t x1, y1;
-            uint16_t w, h;
-            display->getTextBounds(winMsg ? F("Press any button\n      to start!") : F("You died!"), 0, 0, &x1, &y1, &w, &h);
+            const __FlashStringHelper* msg1 = F(" Press btn to start");
+            // const char* msg1 = " Press";
+            const __FlashStringHelper* msg2 = F(" You died");
+            // const char* msg2 = " Dead";
 
-            display->setCursor(SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - h / 2);
-            display->print(winMsg ? F("Press any button\n      to start!") : F("You died!"));
+            // int16_t x1, y1;
+            // uint16_t w, h;
+            // display->getTextBounds(winMsg ? msg1 : msg2, 0, 0, &x1, &y1, &w, &h);
+
+            // display->setCursor(SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - h / 2);
+            display->print(winMsg ? msg1 : msg2);
         }
 };
 

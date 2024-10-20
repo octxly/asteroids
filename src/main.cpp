@@ -9,7 +9,7 @@
 #define OLED_RESET -1 //idk but im supposed to do this
 Adafruit_SSD1306 display(SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, &Wire, OLED_RESET);
 
-int availableMemory(); //forward declaration
+// int availableMemory(); //forward declaration
 
 //game objects
 Game game(&display);
