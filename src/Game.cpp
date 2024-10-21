@@ -50,13 +50,13 @@ class Game{
             display->print(score);
 
             if (!hasStarted){
-                drawCentreString(true);
+                drawMenu(true);
                 if (digitalRead(BTN1) || digitalRead(BTN2))
                     hasStarted = true;
                 return;
             }
-            if (ledControl.lives <= 0){
-                drawCentreString(false);
+            if (ledControl.lives <= 0 || ledControl.lives > STARTLIVES){
+                drawMenu(false);
                 ledControl.update();
                 return;
             }
@@ -193,17 +193,10 @@ class Game{
         }
 
         //The boolean is a workaround so I can save the strings in flash instead of RAM.
-        void drawCentreString(bool winMsg){ 
+        void drawMenu(bool winMsg){ 
             const __FlashStringHelper* msg1 = F(" Press btn to start");
-            // const char* msg1 = " Press";
             const __FlashStringHelper* msg2 = F(" You died");
-            // const char* msg2 = " Dead";
 
-            // int16_t x1, y1;
-            // uint16_t w, h;
-            // display->getTextBounds(winMsg ? msg1 : msg2, 0, 0, &x1, &y1, &w, &h);
-
-            // display->setCursor(SCREEN_WIDTH / 2 - w / 2, SCREEN_HEIGHT / 2 - h / 2);
             display->print(winMsg ? msg1 : msg2);
         }
 };
