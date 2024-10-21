@@ -143,7 +143,11 @@ class Game{
         }
 
         void checkAsteroidCollisions(Bullet *bullet){
-            asteroids.forEach([this, bullet](Asteroid *asteroid){
+            bool hasHit = false;
+
+            asteroids.forEach([this, bullet, &hasHit](Asteroid *asteroid){
+                if (hasHit) return;
+
                 //Bullet collisions with asteroids
                 float distance = magnitude(asteroid->pos.x / 100.0 - bullet->pos.x, asteroid->pos.y / 100.0 - bullet->pos.y);
 
@@ -182,8 +186,8 @@ class Game{
 
                     //Destroy bullet
                     player.bullets.remove(bullet);
-
-                    tone(8, 300, 100);
+                    hasHit = true;
+                    tone(8, 300, 100); 
                 }
             });
         }

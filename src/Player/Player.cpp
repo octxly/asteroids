@@ -15,9 +15,10 @@
 #define findLowest(a, b, c) (min(min((a), (b)), (c)))
 #define findHighest(a, b, c) (max(max((a), (b)), (c)))
 
-#define ACCEL 45
+#define ACCEL 60
 #define DECEL 30
 #define MAXSPD 45
+#define FIRERATE 500
 
 class Player{
     public:
@@ -25,6 +26,7 @@ class Player{
         Vector2<uint8_t> dim; //dimensions aren't large = +255
         Vector2<float> vel; //regular. tried fixed-point representation, but it was too off-putting
         float rotation = 0;
+        unsigned int lastFired = 0;
 
         Vector2<float> lastJoyPos = Vector2<float>(0, -1);
 
@@ -91,8 +93,9 @@ class Player{
 
             static bool hasFired = false;
 
-            if (digitalRead(BTN2) && !hasFired && bullets.getMax() > bullets.getSize()){
+            if (digitalRead(BTN2) && !hasFired && bullets.getMax() > bullets.getSize() && millis() > lastFired + FIRERATE){
                 hasFired = true;
+                lastFired = millis();
 
                 bullets.add(Bullet(Vector2<uint8_t>(pos.x, pos.y), Vector2<int8_t>(lastJoyPos.x * 100, lastJoyPos.y * 100)));
                 
