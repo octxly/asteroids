@@ -1,7 +1,7 @@
 #ifndef ASTEROIDPARAMS
 #define ASTEROIDPARAMS
 
-#define AST_SPAWNRATE 1.5
+#define AST_SPAWNRATE 1
 #define SPLIT_DIFF 60 //After a large asteroid is hit, change in direction in degrees
 #define SPIN_MAX 60 //Asteroid spin speed max. deg/s.
 

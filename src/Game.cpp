@@ -19,7 +19,7 @@ class Game{
     public:
         Adafruit_SSD1306 *display; //gameobjects' render() take display pointer as an arguement cuz for some reason pointers are 8 bytes
 
-        List<Asteroid, 11> asteroids;
+        List<Asteroid, 12> asteroids;
 
         Player player = Player(Vector2<uint8_t>(8, 10), Vector2<float>(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0));
 

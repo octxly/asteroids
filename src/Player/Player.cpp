@@ -47,7 +47,7 @@ class Player{
             );
         }
 
-        List<Bullet, 8> bullets; 
+        List<Bullet, 4> bullets; 
         
         Player(Vector2<uint8_t> dim, Vector2<float> pos) :
             pos(pos), dim(dim) {}
