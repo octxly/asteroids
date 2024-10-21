@@ -24,6 +24,7 @@ class Game{
         Player player = Player(Vector2<uint8_t>(8, 10), Vector2<float>(SCREEN_WIDTH / 2.0, SCREEN_HEIGHT / 2.0));
 
         unsigned long lastAstSpawn = 0;
+        unsigned long lastHit = 0;
         uint16_t astInterval = AST_SPAWNRATE * 1000;
 
         uint16_t score = 0;
@@ -66,6 +67,8 @@ class Game{
                 lastAstSpawn = millis();
             }
 
+            bool outOfGrace = millis() > lastHit + GRACEPERIOD;
+
             //UPDATE - Update physics and variables.
             player.update(deltaTime);
             player.bullets.forEach([this, deltaTime](Bullet *bullet){
@@ -74,7 +77,7 @@ class Game{
                 if (bullet->markedDelete) player.bullets.remove(bullet);
                 else checkAsteroidCollisions(bullet);
             });
-            asteroids.forEach([this, deltaTime](Asteroid *element){
+            asteroids.forEach([this, deltaTime, outOfGrace](Asteroid *element){
                 element->update(deltaTime);
 
                 if (element->markedDelete) asteroids.remove(element);
@@ -82,9 +85,10 @@ class Game{
                     //Player collisions
                     float distance = magnitude(element->pos.x / 100.0 - player.pos.x, element->pos.y / 100.0 - player.pos.y);
 
-                    if (distance < (element->stage ? S_RAD : L_RAD) + player.dim.x / 2){
+                    if (distance < (element->stage ? S_RAD : L_RAD) + player.dim.x / 2 && outOfGrace){
                         asteroids.remove(element);
                         ledControl.lives--;
+                        lastHit = millis();
                         tone(8, 200, 150);
                     }  
                 }
@@ -93,7 +97,7 @@ class Game{
             ledControl.update();
 
             //RENDER - Actually draw things on screen.
-            player.render(display);
+            player.render(display, !outOfGrace);
             player.bullets.forEach([this](Bullet *element){
                 element->render(display);
             });

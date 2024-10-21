@@ -19,6 +19,7 @@
 #define DECEL 30
 #define MAXSPD 45
 #define FIRERATE 500
+#define GRACEPERIOD 3500 //milliseconds
 
 class Player{
     public:
@@ -103,31 +104,50 @@ class Player{
             } else if (!digitalRead(BTN2) && hasFired) hasFired = false;
         }
 
-        void render(Adafruit_SSD1306 *display){
+        void render(Adafruit_SSD1306 *display, bool inGrace){
             Vector2<float> top = rotateAround(Vector2<float>(pos.x, pos.y - dim.y / 2));
             Vector2<float> left = rotateAround(Vector2<float>(pos.x + dim.x / 2, pos.y + dim.y / 2));
             Vector2<float> right = rotateAround(Vector2<float>(pos.x - dim.x / 2, pos.y + dim.y / 2));
 
-            display->fillTriangle(
-                top.x, top.y,
-                left.x, left.y,
-                right.x, right.y,
-                1
-            );
-
-            bool wrapX = findLowest(top.x, left.x, right.x) < 0 || findHighest(top.x, left.x, right.x) >= SCREEN_WIDTH;
-            bool wrapY = findLowest(top.y, left.y, right.y) < 0 || findHighest(top.y, left.y, right.y) >= SCREEN_HEIGHT;
-   
-            if (wrapX || wrapY){
-                int16_t xOffset = wrapX ? (findLowest(top.x, left.x, right.x) < 0 ? SCREEN_WIDTH : -SCREEN_WIDTH) : 0;
-                int16_t yOffset = wrapY ? (findLowest(top.y, left.y, right.y) < 0 ? SCREEN_HEIGHT : -SCREEN_HEIGHT) : 0;
-    
-                display->fillTriangle(
-                    top.x + xOffset, top.y + yOffset,
-                    left.x + xOffset, left.y + yOffset,
-                    right.x + xOffset, right.y + yOffset,
+            if (inGrace)
+                display->drawTriangle(
+                    top.x, top.y,
+                    left.x, left.y,
+                    right.x, right.y,
                     1
                 );
+            else 
+                display->fillTriangle(
+                    top.x, top.y,
+                    left.x, left.y,
+                    right.x, right.y,
+                    1
+                );
+
+            float lowestX = findLowest(top.x, left.x, right.x);
+            float lowestY = findLowest(top.y, left.y, right.y);
+
+            bool wrapX = lowestX < 0 || findHighest(top.x, left.x, right.x) >= SCREEN_WIDTH;
+            bool wrapY = lowestY < 0 || findHighest(top.y, left.y, right.y) >= SCREEN_HEIGHT;
+   
+            if (wrapX || wrapY){
+                int16_t xOffset = wrapX ? (lowestX < 0 ? SCREEN_WIDTH : -SCREEN_WIDTH) : 0;
+                int16_t yOffset = wrapY ? (lowestY < 0 ? SCREEN_HEIGHT : -SCREEN_HEIGHT) : 0;
+    
+                if (inGrace)
+                    display->drawTriangle(
+                        top.x + xOffset, top.y + yOffset,
+                        left.x + xOffset, left.y + yOffset,
+                        right.x + xOffset, right.y + yOffset,
+                        1
+                    );
+                else 
+                    display->fillTriangle(
+                        top.x + xOffset, top.y + yOffset,
+                        left.x + xOffset, left.y + yOffset,
+                        right.x + xOffset, right.y + yOffset,
+                        1
+                    );
             }
         }
 };
