@@ -26,7 +26,7 @@ class Player{
         Vector2<uint8_t> dim; //dimensions aren't large = +255
         Vector2<float> vel; //regular. tried fixed-point representation, but it was too off-putting
         float rotation = 0;
-        unsigned int lastFired = 0;
+        unsigned long lastFired = 0;
 
         Vector2<float> lastJoyPos = Vector2<float>(0, -1);
 
