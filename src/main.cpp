@@ -1,24 +1,36 @@
+#include <Wire.h>
 #include <Adafruit_SSD1306.h>
-#include <Adafruit_GFX.h>
-
-#include "Game.cpp"
-#include "Screendim.h"
+#include "Asteroid/Asteroid.h"
+#include "Bullet/Bullet.h"
+#include "Player/Player.h"
 
 #define ULONG_MAX 4294967295UL
 
+#define NUM_BULLETS 5
+#define NUM_ASTEROIDS 20
+
 #define OLED_RESET -1 //idk but im supposed to do this
-Adafruit_SSD1306 display(SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, &Wire, OLED_RESET);
+Adafruit_SSD1306 display(SCREEN_WIDTH_ACTUAL, SCREEN_HEIGHT_ACTUAL, &Wire, OLED_RESET);
 
-// int availableMemory(); //forward declaration
+Player player;
 
-//game objects
-Game game(&display);
+Bullet bullets[NUM_BULLETS];
+Asteroid asteroids[NUM_ASTEROIDS];
+
+unsigned long lastAstSpawn = 0;
+unsigned long lastHit = 0;
+
+uint16 score = 0;
+bool hasStarted = false;
+
+// auto ledControl = LEDControl(10);
 
 //delta time stuff
-unsigned long timer = 0;
-unsigned long delta = 0;
+unsigned long frameTimer = 0;
+unsigned long asteroidTimer = 0;
 
-// uint16_t avRam;
+void spawnAsteroid();
+void spawnBullet();
 
 void setup() {
     //resetting the board (just in case)
@@ -26,33 +38,106 @@ void setup() {
     display.setTextColor(1);
     display.setTextSize(1);
 
-    randomSeed(analogRead(0));
-
-    // avRam = availableMemory();
+    randomSeed(analogRead(A6));
 }
 
 void loop() {
-    display.clearDisplay();
+    unsigned long now = millis();
 
-    //dev stuff
-    // display.println(String(avRam));
-    // display.println(String(1000.0 / delta));
+    if (now - asteroidTimer >= AST_SPAWNRATE)
+    {
+        asteroidTimer = now;
+        spawnAsteroid();
+    }
 
-    game.update(delta / 1000.0); //Game loop.
+    if (now - frameTimer >= 16)
+    {
+        frameTimer = now;
 
-    display.display();
+        display.clearDisplay();
 
-    //i honestly don't know. a friend gave me this code
-    do delta = (millis() - timer) % ULONG_MAX;
-    while(delta < 1);
+        player.update();
 
-    timer = millis();
+        if (player.queueBullet)
+        {
+            player.queueBullet = false;
+
+            spawnBullet();
+        }
+
+        for (auto& bullet : bullets)
+        {
+            if (bullet.isOutOfBounds())
+            {
+                bullet.deactivate();
+                continue;
+            }
+
+            if (bullet.isActive())
+            {
+                bullet.update();
+            }
+        }
+
+        for (auto& asteroid: asteroids)
+        {
+            if (asteroid.isOutOfBounds())
+            {
+                asteroid.deactivate();
+                continue;
+            }
+
+            if (asteroid.isActive())
+            {
+                asteroid.update();
+            }
+        }
+
+
+        player.render(display);
+
+        for (auto& bullet : bullets)
+        {
+            if (bullet.isActive())
+            {
+                bullet.render(display);
+            }
+        }
+
+        for (auto& asteroid : asteroids)
+        {
+            if (asteroid.isActive())
+            {
+                asteroid.render(display);
+            }
+        }
+
+        display.display();
+    }
 }
 
-// int availableMemory() {
-//     int size = 2048;
-//     byte *buf;
-//     while ((buf = (byte *) malloc(--size)) == NULL);
-//     free(buf);
-//     return size;
-// }
+void spawnAsteroid()
+{
+    for (int i = 0; i < NUM_ASTEROIDS; i++)
+    {
+        if (!asteroids[i].isActive())
+        {
+
+
+            break;
+        }
+    }
+}
+
+void spawnBullet()
+{
+    for (int i = 0; i < NUM_BULLETS; i++)
+    {
+        if (!bullets[i].isActive())
+        {
+            bullets[i] = player.generateBullet();
+
+            break;
+        }
+    }
+}
