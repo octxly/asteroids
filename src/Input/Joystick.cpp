@@ -1,61 +1,43 @@
-#ifndef JOYSTICK
-#define JOYSTICK
+#include "Joystick.h"
 
-#include <Arduino.h>
-#include "Vector/Vector2.cpp"
+#define PIN_X A6
+#define PIN_Y A7
 
-class Joystick{
-    private:
-        uint8_t pinX;
-        uint8_t pinY;
+//Deadzone on the original analog scale of -512 to 511
+#define DEADZONE_RANGE 50
 
-        Vector2<float> value;
+//Input from analog read comes in as 0-1023, changes that to -8 - +8
+inline int8_t remap(const int in)
+{
+    const int v = in - 511;
 
-        float r(float in){
-            float num = round((in / 512.0 - 1) * 20.0) / 20.0;
-            
-            return fabs(num) < 0.1f ? 0 : num;
-        }
+    // deadzone (adjust as needed)
+    if (v > -DEADZONE_RANGE && v < DEADZONE_RANGE)
+        return 0;
 
-        void read(){
-            this->value = Vector2<float>(r(analogRead(pinX)), r(analogRead(pinY)));
-        }
+    return v >> 6; //Narrowing is fine due to such large bitshift
+}
 
-    public:
-        Joystick(uint8_t pinX, uint8_t pinY) : pinX(pinX), pinY(pinY) {
-            pinMode(pinX, INPUT);
-            pinMode(pinY, INPUT);
-        }
+Joystick::Joystick() : value(0, -8), actuated(false)
+{
+    pinMode(PIN_X, INPUT);
+    pinMode(PIN_Y, INPUT);
+}
 
-        Vector2<float> readRaw(){
-            read();
+void Joystick::update()
+{
+    Vector2<int8_t> raw = Vector2<int8_t>(remap(analogRead(PIN_X)), remap(analogRead(PIN_Y)));
 
-            return value;
-        }
+    if (raw.x == 0 && raw.y == 0)
+    {
+        actuated = false;
+        return;
+    }
 
-        Vector2<float> readNormalized(){
-            read();
-            float magnitude = sqrt(sq(value.x) + sq(value.y));
+    actuated = true;
 
-            return Vector2<float>(value.x / magnitude, value.y / magnitude);
-        }
+    //ratio of target magnitude of 8.0 to the actual magnitude
+    const float magCoefficient = 8.0 / sqrt(sq(raw.x) + sq(raw.y));
 
-        float readDeg(){
-            read();
-
-            return degrees(atan2(value.x, -value.y));
-        }
-
-        bool xActuated(){
-            read();
-
-            return value.x != 0;
-        }
-        bool yActuated(){
-            read();
-
-            return value.y != 0;
-        }
-};
-
-#endif
+    this->value = Vector2<int8_t>(raw.x * magCoefficient, raw.y * magCoefficient);
+}

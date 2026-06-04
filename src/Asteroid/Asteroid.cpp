@@ -1,88 +1,84 @@
-#ifndef ASTEROID
-#define ASTEROID
-
-#include <Arduino.h>
-#include <Adafruit_SSD1306.h>
-#include "Vector/Vector2.cpp"
+#include "Asteroid.h"
 #include "Screendim.h"
-#include "Asteroid/AsteroidParams.h"
 
-class Asteroid{
-    public:
-        Vector2<int16_t> pos;
-        Vector2<int8_t> dir; //normalized +/-1.27
+//sine lookup of first quarter of the function, split into 32 parts, from 0-32
+constexpr int8_t sinLUT[32] = {0,2,3,5,6,8,9,11,12,14,15,16,18,19,20,21,23,24,25,26,27,27,28,29,30,30,31,31,31,32,32,32,};
 
-        uint8_t stage = 0;
-        int8_t rotationSpd = 0;
-        uint16_t rotation = 0; // + 655.35
-        bool markedDelete = false;
+int8_t fastSine(uint8_t angle)
+{
+    //Modulo 64, divide by 2 for range of 32
+    uint8_t index = (angle & 63) >> 1;
 
-        uint8_t vMags[L_N_VERTEX]; // +25.5 
+    if (angle < 64)
+    {
+        return sinLUT[index];
+    }
 
-        Vector2<float> rotateAround(Vector2<float> point, uint16_t rot){
-            float angleRad = radians(rot + (rotation / 100.0));
+    if (angle < 128)
+    {
+        return sinLUT[31 - index];
+    }
 
-            float angleCos = cos(angleRad);
-            float angleSin = sin(angleRad);
-            
-            float transX = point.x - pos.x / 100.0;
-            float transY = point.y - pos.y / 100.0;
-            
-            return Vector2<float>(
-                transX * angleCos - transY * angleSin + pos.x / 100.0, 
-                transX * angleSin + transY * angleCos + pos.y / 100.0
-            );
-        }
+    if (angle < 192)
+    {
+        return -sinLUT[index];
+    }
 
-        void calcMags(){
-            uint8_t radius = stage ? S_RAD : L_RAD;
+    return -sinLUT[31 - index];
+}
+inline int8_t fastCosine(uint8_t angle)
+{
+    return fastSine(64 + angle);
+}
 
-            for (uint8_t i = 0; i < (stage ? S_N_VERTEX : L_N_VERTEX); i++){
-                vMags[i] = random((stage ? S_MIN_MAG : L_MIN_MAG) * radius * 2, (stage ? S_MAX_MAG : L_MAX_MAG) * radius * 2) / 2.0;
-            }
 
-            rotationSpd = random(SPIN_MAX) + 1;
- 
-            rotationSpd *= random(2) == 0 ? 1 : -1; //Randomize spin direction;
-        }
+void Asteroid::calcMags()
+{
+    for (uint8_t i = 0; i < (stage ? S_N_VERTEX : L_N_VERTEX); i++){
+        vertexMagnitudes[i] = random(stage ? S_MIN_MAG : L_MIN_MAG, stage ? S_MAX_MAG : L_MAX_MAG);
+    }
 
-        Asteroid(Vector2<int16_t> pos = Vector2<int16_t>(), Vector2<int8_t> dir = Vector2<int8_t>(), uint8_t stage = 0) :
-            pos(pos), dir(dir), stage(stage) { calcMags(); }
+    rotationSpeed = random(SPIN_MAX + 1);
+    rotationSpeed *= random(2) == 0 ? 1 : -1; //Randomize spin direction;
+}
 
-        void update(float deltaTime){
-            uint8_t speed = stage ? S_SPEED : L_SPEED;
-            //Can skip decoding since its writing the product to a scaled int anyways.
-            pos.x += dir.x * speed * deltaTime;
-            pos.y += dir.y * speed * deltaTime;
+Asteroid::Asteroid(Vector2<int16_t> position, Vector2<int8_t> direction, uint8_t stage) :
+position(position), velocity(direction), stage(stage), rotation(0)
+{
+    calcMags();
+}
 
-            //Deletion maxRad has to be slightly larger because otherwise it interferes with spawning.
-            float maxRad = L_RAD * L_MAX_MAG * 1.05;
+void Asteroid::update()
+{
+    position.x += velocity.x;
+    position.y += velocity.y;
 
-            rotation += (rotationSpd * deltaTime) * 100;
-            
-            //would lower readability tho
-            if(pos.x / 100.0 - maxRad >= SCREEN_WIDTH || pos.x / 100.0 + maxRad <= 0 || pos.y / 100.0 - maxRad >= SCREEN_HEIGHT || pos.y / 100.0 + maxRad <= 0) markedDelete = true;
-        }
-        void render(Adafruit_SSD1306 *display){
-            uint16_t degInterval = 360.0 / (stage ? S_N_VERTEX : L_N_VERTEX);
+    rotation += rotationSpeed;
+}
 
-            uint8_t nVert = stage ? S_N_VERTEX : L_N_VERTEX;
+void Asteroid::render(Adafruit_SSD1306& display) const
+{
+    //rotation is 0-255, with naturally occuring reset to 0
+    uint8_t currentAngle = rotation;
 
-            //prev starts on the last one so it can be utilized by the first one.
-            Vector2<float> prev = rotateAround(Vector2<float>(pos.x / 100.0, pos.y / 100.0 - vMags[nVert - 1]), degInterval * (nVert - 1));
-            Vector2<float> current;
+    uint8_t nVert = stage ? S_N_VERTEX : L_N_VERTEX;
 
-            for (uint8_t i = 0; i < nVert; i++){
-                current = rotateAround(Vector2<float>(pos.x / 100.0, pos.y / 100.0 - vMags[i]), degInterval * i);
+    uint8_t angleStep = 256 / nVert;
 
-                display->drawLine(
-                    current.x, current.y,
-                    prev.x, prev.y,
-                    1
-                );
-                prev = current;
-            }
-        }
-};
+    //Start with last vertex and use it
 
-#endif
+    Vector2<int16_t> prev = Vector2<int16_t>(
+        (fastCosine(currentAngle - angleStep) * vertexMagnitudes[nVert - 1]) >> 2,
+        (fastSine(currentAngle - angleStep) * vertexMagnitudes[nVert - 1]) >> 2
+    );
+
+    for (int i = 0; i < nVert; i++)
+    {
+        Vector2<int16_t> curr = Vector2<int16_t>((fastCosine(currentAngle) * vertexMagnitudes[i]) >> 2, (fastSine(currentAngle) * vertexMagnitudes[i]) >> 2);
+
+        display.drawLine(scaleDown(position.x + prev.x), scaleDown(position.y + prev.y), scaleDown(position.x + curr.x), scaleDown(position.y + curr.y), WHITE);
+
+        currentAngle += angleStep;
+        prev = curr;
+    }
+}

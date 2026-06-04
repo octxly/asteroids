@@ -1,24 +1,39 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 
-#include "Game.cpp"
 #include "Screendim.h"
+#include "Asteroid/Asteroid.h"
+#include "Bullet/Bullet.h"
+#include "Player/Player.h"
 
 #define ULONG_MAX 4294967295UL
 
 #define OLED_RESET -1 //idk but im supposed to do this
-Adafruit_SSD1306 display(SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, &Wire, OLED_RESET);
+Adafruit_SSD1306 display(SCREEN_WIDTH_ACTUAL, SCREEN_HEIGHT_ACTUAL, &Wire, OLED_RESET);
 
-// int availableMemory(); //forward declaration
+// List<Asteroid, 12> asteroids;
 
-//game objects
-Game game(&display);
+Player player;
+
+auto asteroid = Asteroid(
+    Vector2<int16_t>(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2),
+    Vector2<int8_t>(0, 0),
+    0
+);
+
+Bullet bullets[5];
+
+unsigned long lastAstSpawn = 0;
+unsigned long lastHit = 0;
+
+uint16_t score = 0;
+bool hasStarted = false;
+
+// auto ledControl = LEDControl(10);
 
 //delta time stuff
 unsigned long timer = 0;
 unsigned long delta = 0;
-
-// uint16_t avRam;
 
 void setup() {
     //resetting the board (just in case)
@@ -26,33 +41,37 @@ void setup() {
     display.setTextColor(1);
     display.setTextSize(1);
 
-    randomSeed(analogRead(0));
+    randomSeed(analogRead(A6));
 
     // avRam = availableMemory();
 }
 
 void loop() {
-    display.clearDisplay();
+    unsigned long now = millis();
+    delta = now - timer;
 
-    //dev stuff
-    // display.println(String(avRam));
-    // display.println(String(1000.0 / delta));
+    if (delta >= 16)
+    {
+        timer = now;
 
-    game.update(delta / 1000.0); //Game loop.
+        display.clearDisplay();
 
-    display.display();
+        player.update();
+        asteroid.update();
 
-    //i honestly don't know. a friend gave me this code
-    do delta = (millis() - timer) % ULONG_MAX;
-    while(delta < 1);
+        for (auto& bullet : bullets)
+        {
+            if (bullet.isActive())
+            {
+                bullet.update();
+            }
+        }
 
-    timer = millis();
+        player.render(display);
+        asteroid.render(display);
+
+        
+
+        display.display();
+    }
 }
-
-// int availableMemory() {
-//     int size = 2048;
-//     byte *buf;
-//     while ((buf = (byte *) malloc(--size)) == NULL);
-//     free(buf);
-//     return size;
-// }
