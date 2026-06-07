@@ -4,10 +4,12 @@
 #include "Bullet/Bullet.h"
 #include "Player/Player.h"
 
-#define ULONG_MAX 4294967295UL
-
 #define NUM_BULLETS 5
-#define NUM_ASTEROIDS 20
+#define NUM_ASTEROIDS 17
+
+#define FOREACH_ACTIVE(element, arr, active) \
+    for (auto& (element) : (arr))\
+        if (element.isActive() == (active))\
 
 #define OLED_RESET -1 //idk but im supposed to do this
 Adafruit_SSD1306 display(SCREEN_WIDTH_ACTUAL, SCREEN_HEIGHT_ACTUAL, &Wire, OLED_RESET);
@@ -20,7 +22,7 @@ Asteroid asteroids[NUM_ASTEROIDS];
 unsigned long lastAstSpawn = 0;
 unsigned long lastHit = 0;
 
-uint16 score = 0;
+uint8_t score = 0;
 bool hasStarted = false;
 
 // auto ledControl = LEDControl(10);
@@ -28,9 +30,6 @@ bool hasStarted = false;
 //delta time stuff
 unsigned long frameTimer = 0;
 unsigned long asteroidTimer = 0;
-
-void spawnAsteroid();
-void spawnBullet();
 
 void setup() {
     //resetting the board (just in case)
@@ -47,14 +46,22 @@ void loop() {
     if (now - asteroidTimer >= AST_SPAWNRATE)
     {
         asteroidTimer = now;
-        spawnAsteroid();
+
+        FOREACH_ACTIVE(asteroid, asteroids, false)
+        {
+            asteroid = Asteroid::spawnAsteroid();
+            break;
+        }
     }
 
-    if (now - frameTimer >= 16)
+    if (now - frameTimer >= 45) //20 fps
     {
-        frameTimer = now;
-
         display.clearDisplay();
+
+        display.setCursor(0, 0);
+        display.println(now-frameTimer);
+
+        frameTimer = now;
 
         player.update();
 
@@ -62,82 +69,68 @@ void loop() {
         {
             player.queueBullet = false;
 
-            spawnBullet();
+            FOREACH_ACTIVE(bullet, bullets, false)
+            {
+                bullet = player.generateBullet();
+                break;
+            }
         }
 
-        for (auto& bullet : bullets)
+        FOREACH_ACTIVE(bullet, bullets, true)
         {
+            bullet.update();
+
             if (bullet.isOutOfBounds())
             {
                 bullet.deactivate();
                 continue;
             }
 
-            if (bullet.isActive())
+            FOREACH_ACTIVE(asteroid, asteroids, true)
             {
-                bullet.update();
+                if (asteroid.isIntersecting(bullet.getPosition()))
+                {
+                    if (asteroid.getStage() == ASTEROID_LARGE)
+                    {
+                        uint8_t numSplit = random(ASTEROID_NUM_SPLIT_MIN, ASTEROID_NUM_SPLIT_MAX + 1);
+                        uint8_t currAdded = 0;
+
+                        FOREACH_ACTIVE(newAsteroid, asteroids, false)
+                        {
+                            newAsteroid = asteroid.spawnBrokenChunk();
+                            currAdded++;
+
+                            if (currAdded == numSplit) break;
+                        }
+                    }
+
+                    asteroid.deactivate();
+                    bullet.deactivate();
+
+                    break; //exit the loop for this iteration since the bullet is no longer valid, so dont check any other asteroids
+                }
             }
         }
 
-        for (auto& asteroid: asteroids)
+        FOREACH_ACTIVE(asteroid, asteroids, true)
         {
+            asteroid.update();
+
             if (asteroid.isOutOfBounds())
             {
                 asteroid.deactivate();
-                continue;
-            }
-
-            if (asteroid.isActive())
-            {
-                asteroid.update();
             }
         }
 
 
         player.render(display);
 
-        for (auto& bullet : bullets)
-        {
-            if (bullet.isActive())
-            {
-                bullet.render(display);
-            }
-        }
+        FOREACH_ACTIVE(bullet, bullets, true)
+            bullet.render(display);
 
-        for (auto& asteroid : asteroids)
-        {
-            if (asteroid.isActive())
-            {
-                asteroid.render(display);
-            }
-        }
+        FOREACH_ACTIVE(asteroid, asteroids, true)
+            asteroid.render(display);
 
         display.display();
-    }
-}
-
-void spawnAsteroid()
-{
-    for (int i = 0; i < NUM_ASTEROIDS; i++)
-    {
-        if (!asteroids[i].isActive())
-        {
-
-
-            break;
-        }
-    }
-}
-
-void spawnBullet()
-{
-    for (int i = 0; i < NUM_BULLETS; i++)
-    {
-        if (!bullets[i].isActive())
-        {
-            bullets[i] = player.generateBullet();
-
-            break;
-        }
     }
 }

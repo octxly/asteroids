@@ -2,19 +2,19 @@
 #define ASTEROIDS_BULLET_H
 
 #include "Vector/Vector2.h"
-#include "Types.h"
+#include <stdint.h>
 #include "Screendim.h"
 
 class Adafruit_SSD1306;
 
 class Bullet
 {
-    Vector2<int16> position;
-    Vector2<int8> velocity;
+    Vector2<int16_t> position;
+    Vector2<int8_t> velocity;
 
 public:
     Bullet();
-    Bullet(Vector2<int16> position, Vector2<int8> direction);
+    Bullet(Vector2<int16_t> position, Vector2<int8_t> direction);
 
     void update();
     void render(Adafruit_SSD1306& display) const;
@@ -33,6 +33,11 @@ public:
     {
         velocity.x = 0;
         velocity.y = 0;
+    }
+
+    Vector2<int16_t> getPosition() const
+    {
+        return position;
     }
 };
 

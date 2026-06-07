@@ -10,6 +10,6 @@
 
 #define SCALE_FACTOR 3 //How much the screen dimensions are "blown up" for simulation
 
-#define scaleDown(x) ((x) >> SCALE_FACTOR)
+#define SCALE_DOWN(x) ((x) >> SCALE_FACTOR)
 
 #endif

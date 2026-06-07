@@ -8,7 +8,7 @@
 #define DEADZONE_RANGE 50
 
 //Input from analog read comes in as 0-1023, changes that to -8 - +8
-inline int8 remap(const int in)
+inline int8_t remap(const int in)
 {
     const int v = in - 511;
 
@@ -27,7 +27,7 @@ Joystick::Joystick() : value(0, -8), actuated(false)
 
 void Joystick::update()
 {
-    Vector2<int8> raw = Vector2<int8>(remap(analogRead(PIN_X)), remap(analogRead(PIN_Y)));
+    Vector2<int8_t> raw = Vector2<int8_t>(remap(analogRead(PIN_X)), remap(analogRead(PIN_Y)));
 
     if (raw.x == 0 && raw.y == 0)
     {
@@ -40,5 +40,5 @@ void Joystick::update()
     //ratio of target magnitude of 8.0 to the actual magnitude
     const float magCoefficient = 8.0 / sqrt(sq(raw.x) + sq(raw.y));
 
-    this->value = Vector2<int8>(raw.x * magCoefficient, raw.y * magCoefficient);
+    this->value = Vector2<int8_t>(raw.x * magCoefficient, raw.y * magCoefficient);
 }

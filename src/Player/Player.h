@@ -10,8 +10,8 @@ class Player
 {
     Joystick joystick;
 
-    Vector2<int16> position;
-    Vector2<int16> velocity;
+    Vector2<int16_t> position;
+    Vector2<int16_t> velocity;
 
 public:
     bool queueBullet;

@@ -6,7 +6,7 @@
 Bullet::Bullet()
 = default;
 
-Bullet::Bullet(Vector2<int16> position, Vector2<int8> direction) : position(position), velocity(direction)
+Bullet::Bullet(Vector2<int16_t> position, Vector2<int8_t> direction) : position(position), velocity(direction)
 {
 
 }
@@ -19,5 +19,5 @@ void Bullet::update()
 
 void Bullet::render(Adafruit_SSD1306& display) const
 {
-    display.drawPixel(scaleDown(position.x), scaleDown(position.y), WHITE);
+    display.drawPixel(SCALE_DOWN(position.x), SCALE_DOWN(position.y), WHITE);
 }

@@ -1,5 +1,6 @@
 #ifndef ASTEROIDS_VECTOR2_H
 #define ASTEROIDS_VECTOR2_H
+#include <stdint.h>
 
 template <typename T>
 struct Vector2
@@ -13,15 +14,15 @@ struct Vector2
     }
 
 
-    Vector2 perpendicular()
+    Vector2 perpendicular() const
     {
         return Vector2(-y, x);
     }
 
-    // uint16_t lengthSquared()
-    // {
-    //     return sq(x) + sq(y);
-    // }
+    uint32_t lengthSquared() const
+    {
+        return x*x + y*y;
+    }
 };
 
 #endif //ASTEROIDS_VECTOR2_H

@@ -1,12 +1,12 @@
 #ifndef ASTEROIDS_JOYSTICK_H
 #define ASTEROIDS_JOYSTICK_H
 
-#include "Types.h"
+#include <stdint.h>
 #include "Vector/Vector2.h"
 
 class Joystick
 {
-    Vector2<int8> value;
+    Vector2<int8_t> value;
     bool actuated;
 
 public:
@@ -14,7 +14,7 @@ public:
 
     void update();
 
-    Vector2<int8> getNormalized() const
+    Vector2<int8_t> getNormalized() const
     {
         return value;
     }

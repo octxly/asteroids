@@ -16,8 +16,6 @@
 
 #define BORDER_BUFFER 64
 
-// #define sgn(x) ((x) < 0 ? -1 : ((x) > 0 ? 1 : 0))
-
 Player::Player() : position(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), velocity(0, 0), queueBullet(false), inGrace(false)
 {
 
@@ -42,16 +40,9 @@ void Player::update() {
 
     auto input = joystick.getNormalized();
 
-
-    //SPEED CAP NOT NEEDED FOR NOW
-    // uint16 lengthSquared = velocity.lengthSquared() >> VELOCITY_FRAC;
-
     if (readLButton() && input.x != 0)
     {
-        // if (lengthSquared < sq(MAX_SPEED))
-        // {
-            velocity.x += input.x * ACCEL; // 8/2 - aka 4 pixels/
-        // }
+        velocity.x += input.x * ACCEL;
     }
     else
     {
@@ -67,10 +58,7 @@ void Player::update() {
     }
     if (readLButton() && input.y != 0)
     {
-        // if (lengthSquared < sq(MAX_SPEED))
-        // {
-            velocity.y += input.y * ACCEL;
-        // }
+        velocity.y += input.y * ACCEL;
     }
     else
     {
@@ -102,16 +90,12 @@ void Player::update() {
 
 void Player::render(Adafruit_SSD1306& display) const
 {
-    // display.setCursor(0, 0);
-    // display.println(velocity.x);
-    // display.println(velocity.y);
-
     auto up = joystick.getNormalized();
     auto right = up.perpendicular();
 
-    auto topV = Vector2<int16>(scaleDown(position.x + up.x * PLAYER_HEIGHT), scaleDown(position.y + up.y * PLAYER_HEIGHT));
-    auto leftV = Vector2<int16>(scaleDown(position.x - up.x * PLAYER_HEIGHT + right.x * PLAYER_WIDTH), scaleDown(position.y - up.y * PLAYER_HEIGHT + right.y * PLAYER_WIDTH));
-    auto rightV = Vector2<int16>(scaleDown(position.x - up.x * PLAYER_HEIGHT - right.x * PLAYER_WIDTH), scaleDown(position.y - up.y * PLAYER_HEIGHT - right.y * PLAYER_WIDTH));
+    auto topV = Vector2<int16_t>(SCALE_DOWN(position.x + up.x * PLAYER_HEIGHT), SCALE_DOWN(position.y + up.y * PLAYER_HEIGHT));
+    auto leftV = Vector2<int16_t>(SCALE_DOWN(position.x - up.x * PLAYER_HEIGHT + right.x * PLAYER_WIDTH), SCALE_DOWN(position.y - up.y * PLAYER_HEIGHT + right.y * PLAYER_WIDTH));
+    auto rightV = Vector2<int16_t>(SCALE_DOWN(position.x - up.x * PLAYER_HEIGHT - right.x * PLAYER_WIDTH), SCALE_DOWN(position.y - up.y * PLAYER_HEIGHT - right.y * PLAYER_WIDTH));
 
     display.fillTriangle(topV.x, topV.y, leftV.x, leftV.y, rightV.x, rightV.y, WHITE);
 }
