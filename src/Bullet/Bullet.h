@@ -1,7 +1,7 @@
 #ifndef ASTEROIDS_BULLET_H
 #define ASTEROIDS_BULLET_H
 
-#include "Vector/Vector2.h"
+#include "Math/Vector2.h"
 #include <stdint.h>
 #include "Screendim.h"
 

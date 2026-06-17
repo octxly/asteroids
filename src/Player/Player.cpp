@@ -7,16 +7,16 @@
 #define DECEL_COEFFICIENT 60 // this over /64 will be multiplied by each component of velocity to decelerate
 #define DECEL_DENOMINATOR 6 //2^6 = 64
 #define VELOCITY_FRAC 3
-// #define MAX_SPEED 60
 #define FIRE_RATE 500
 // #define GRACE_PERIOD 3500 //milliseconds
+#define NUM_LIVES 3
 
 #define PLAYER_WIDTH 4
 #define PLAYER_HEIGHT 6
 
 #define BORDER_BUFFER 64
 
-Player::Player() : position(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), velocity(0, 0), queueBullet(false), inGrace(false)
+Player::Player() : position(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2), velocity(0, 0), queueBullet(false), inGrace(false), lives(NUM_LIVES)
 {
 
 }

@@ -8,14 +8,16 @@ class Bullet;
 
 class Player
 {
-    Joystick joystick;
-
     Vector2<int16_t> position;
     Vector2<int16_t> velocity;
+
+    Joystick joystick;
 
 public:
     bool queueBullet;
     bool inGrace;
+
+    uint8_t lives;
 
     Player();
 
@@ -23,6 +25,11 @@ public:
     void render(Adafruit_SSD1306& display) const;
 
     Bullet generateBullet() const;
+
+    Vector2<int16_t> getPosition() const
+    {
+        return position;
+    }
 };
 
 #endif //ASTEROIDS_PLAYER_H

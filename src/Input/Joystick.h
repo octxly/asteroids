@@ -2,7 +2,7 @@
 #define ASTEROIDS_JOYSTICK_H
 
 #include <stdint.h>
-#include "Vector/Vector2.h"
+#include "Math/Vector2.h"
 
 class Joystick
 {

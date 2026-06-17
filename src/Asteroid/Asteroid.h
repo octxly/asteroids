@@ -3,7 +3,7 @@
 
 #include "AsteroidParams.h"
 #include "Screendim.h"
-#include "Vector/Vector2.h"
+#include "Math/Vector2.h"
 #include <stdint.h>
 
 class Adafruit_SSD1306;
