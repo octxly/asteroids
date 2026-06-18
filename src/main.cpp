@@ -1,24 +1,31 @@
+#include <Wire.h>
 #include <Adafruit_SSD1306.h>
-#include <Adafruit_GFX.h>
+#include "Asteroid/Asteroid.h"
+#include "Bullet/Bullet.h"
+#include "Input/Button.h"
+#include "Ouput/Led.h"
+#include "Ouput/Peizo.h"
+#include "Player/Player.h"
 
-#include "Game.cpp"
-#include "Screendim.h"
+#define NUM_BULLETS 5
+#define NUM_ASTEROIDS 18
 
-#define ULONG_MAX 4294967295UL
+#define FOREACH_ACTIVE(element, arr, active) \
+    for (auto& element : arr)\
+        if (element.isActive() == (active))\
 
-#define OLED_RESET -1 //idk but im supposed to do this
-Adafruit_SSD1306 display(SCREEN_WIDTH_FULL, SCREEN_HEIGHT_FULL, &Wire, OLED_RESET);
+Adafruit_SSD1306 display(SCREEN_WIDTH_ACTUAL, SCREEN_HEIGHT_ACTUAL, &Wire, -1);
 
-// int availableMemory(); //forward declaration
-
-//game objects
-Game game(&display);
+Player player;
+Bullet bullets[NUM_BULLETS];
+Asteroid asteroids[NUM_ASTEROIDS];
 
 //delta time stuff
-unsigned long timer = 0;
-unsigned long delta = 0;
+uint32_t frameTimer = 0;
+uint32_t asteroidTimer = 0;
 
-// uint16_t avRam;
+uint8_t score = 0;
+bool hasStarted = false;
 
 void setup() {
     //resetting the board (just in case)
@@ -26,33 +33,151 @@ void setup() {
     display.setTextColor(1);
     display.setTextSize(1);
 
-    randomSeed(analogRead(0));
+    initButtons();
+    initPiezo();
+    initLED();
 
-    // avRam = availableMemory();
+    randomSeed(analogRead(A6));
+
+    display.clearDisplay();
+    display.setCursor(0, 24);
+    display.println(F("Press any button"));
+    display.println(F("to start the game"));
+    display.display();
 }
 
 void loop() {
-    display.clearDisplay();
+    uint32_t now = millis();
 
-    //dev stuff
-    // display.println(String(avRam));
-    // display.println(String(1000.0 / delta));
+    if (!hasStarted)
+    {
+        if (readLButton() || readRButton())
+            hasStarted = true;
 
-    game.update(delta / 1000.0); //Game loop.
+        return;
+    }
 
-    display.display();
+    if (player.lives <= 0)
+    {
+        display.clearDisplay();
+        display.setCursor(0, 0);
+        display.print(F("You lost lmao"));
+        display.display();
 
-    //i honestly don't know. a friend gave me this code
-    do delta = (millis() - timer) % ULONG_MAX;
-    while(delta < 1);
+        return;
+    }
 
-    timer = millis();
+    if (now - asteroidTimer >= AST_SPAWNRATE)
+    {
+        asteroidTimer = now;
+
+        FOREACH_ACTIVE(asteroid, asteroids, false)
+        {
+            asteroid = Asteroid::spawnAsteroid();
+            break;
+        }
+    }
+
+    if (now - frameTimer >= 45) //20 fps
+    {
+        display.clearDisplay();
+
+        display.setCursor(0, 0);
+        display.print(F("Score: "));
+        display.print(score);
+        display.setCursor(SCREEN_WIDTH_ACTUAL - 12, 0);
+        display.print(now-frameTimer);
+
+        frameTimer = now;
+
+        player.update();
+
+        if (player.queueBullet)
+        {
+            player.queueBullet = false;
+
+            FOREACH_ACTIVE(bullet, bullets, false)
+            {
+                bullet = player.generateBullet();
+                toneShot();
+                break;
+            }
+        }
+
+        FOREACH_ACTIVE(bullet, bullets, true)
+        {
+            bullet.update();
+
+            if (bullet.isOutOfBounds())
+            {
+                bullet.deactivate();
+            }
+        }
+
+        FOREACH_ACTIVE(asteroid, asteroids, true)
+        {
+            asteroid.update();
+
+            if (asteroid.isOutOfBounds())
+            {
+                asteroid.deactivate();
+                continue;
+            }
+
+            if (asteroid.isIntersecting(player.getPosition()))
+            {
+                player.lives--;
+                tonePlayerHit();
+                
+                asteroid.deactivate();
+                break;
+            }
+
+            FOREACH_ACTIVE(bullet, bullets, true)
+            {
+                if (asteroid.isIntersecting(bullet.getPosition()))
+                {
+                    if (asteroid.getStage() == ASTEROID_LARGE)
+                    {
+                        uint8_t numSplit = random(ASTEROID_NUM_SPLIT_MIN, ASTEROID_NUM_SPLIT_MAX + 1);
+                        uint8_t currAdded = 0;
+
+                        FOREACH_ACTIVE(newAsteroid, asteroids, false)
+                        {
+                            newAsteroid = asteroid.spawnBrokenChunk();
+                            currAdded++;
+
+                            if (currAdded == numSplit) break;
+                        }
+
+                        score += L_POINTS;
+                    }
+                    else
+                    {
+                        score += S_POINTS;
+                    }
+
+                    toneAsteroidHit();
+
+                    asteroid.deactivate();
+                    bullet.deactivate();
+
+                    break; //exit the loop for this iteration since the bullet is no longer valid, so dont check any other asteroids
+                }
+            }
+        }
+
+        tickLED(player.lives);
+
+
+        player.render(display);
+
+        FOREACH_ACTIVE(bullet, bullets, true)
+            bullet.render(display);
+
+        FOREACH_ACTIVE(asteroid, asteroids, true)
+            asteroid.render(display);
+
+        display.display();
+    }
 }
-
-// int availableMemory() {
-//     int size = 2048;
-//     byte *buf;
-//     while ((buf = (byte *) malloc(--size)) == NULL);
-//     free(buf);
-//     return size;
-// }

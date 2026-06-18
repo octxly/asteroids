@@ -1,88 +1,102 @@
-#ifndef ASTEROID
-#define ASTEROID
-
+#include "Asteroid.h"
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
-#include "Vector/Vector2.cpp"
 #include "Screendim.h"
-#include "Asteroid/AsteroidParams.h"
+#include "Math/Trig.h"
 
-class Asteroid{
-    public:
-        Vector2<int16_t> pos;
-        Vector2<int8_t> dir; //normalized +/-1.27
+void Asteroid::calcMags()
+{
+    uint16_t sum = 0;
 
-        uint8_t stage = 0;
-        int8_t rotationSpd = 0;
-        uint16_t rotation = 0; // + 655.35
-        bool markedDelete = false;
+    for (uint8_t i = 0; i < (stage ? S_N_VERTEX : L_N_VERTEX); i++){
+        vertexMagnitudes[i] = random(stage ? S_MIN_MAG : L_MIN_MAG, stage ? S_MAX_MAG : L_MAX_MAG);
+        sum += vertexMagnitudes[i];
+    }
 
-        uint8_t vMags[L_N_VERTEX]; // +25.5 
+    averageMagnitude = sum / (stage? S_N_VERTEX : L_N_VERTEX);
 
-        Vector2<float> rotateAround(Vector2<float> point, uint16_t rot){
-            float angleRad = radians(rot + (rotation / 100.0));
+    rotationSpeed = random(SPIN_MAX + 1);
+    rotationSpeed *= random(2) == 0 ? 1 : -1; //Randomize spin direction;
+}
 
-            float angleCos = cos(angleRad);
-            float angleSin = sin(angleRad);
-            
-            float transX = point.x - pos.x / 100.0;
-            float transY = point.y - pos.y / 100.0;
-            
-            return Vector2<float>(
-                transX * angleCos - transY * angleSin + pos.x / 100.0, 
-                transX * angleSin + transY * angleCos + pos.y / 100.0
-            );
-        }
+Asteroid::Asteroid() = default;
 
-        void calcMags(){
-            uint8_t radius = stage ? S_RAD : L_RAD;
+Asteroid::Asteroid(Vector2<int16_t> position, Vector2<int8_t> direction, uint8_t stage) :
+position(position), velocity(direction), stage(stage), rotation(0)
+{
+    calcMags();
+}
 
-            for (uint8_t i = 0; i < (stage ? S_N_VERTEX : L_N_VERTEX); i++){
-                vMags[i] = random((stage ? S_MIN_MAG : L_MIN_MAG) * radius * 2, (stage ? S_MAX_MAG : L_MAX_MAG) * radius * 2) / 2.0;
-            }
+void Asteroid::update()
+{
+    position.x += velocity.x;
+    position.y += velocity.y;
 
-            rotationSpd = random(SPIN_MAX) + 1;
- 
-            rotationSpd *= random(2) == 0 ? 1 : -1; //Randomize spin direction;
-        }
+    rotation += rotationSpeed;
+}
 
-        Asteroid(Vector2<int16_t> pos = Vector2<int16_t>(), Vector2<int8_t> dir = Vector2<int8_t>(), uint8_t stage = 0) :
-            pos(pos), dir(dir), stage(stage) { calcMags(); }
+void Asteroid::render(Adafruit_SSD1306& display) const
+{
+    //rotation is 0-255, with naturally occuring reset to 0
+    uint8_t currentAngle = rotation;
 
-        void update(float deltaTime){
-            uint8_t speed = stage ? S_SPEED : L_SPEED;
-            //Can skip decoding since its writing the product to a scaled int anyways.
-            pos.x += dir.x * speed * deltaTime;
-            pos.y += dir.y * speed * deltaTime;
+    uint8_t nVert = stage ? S_N_VERTEX : L_N_VERTEX;
 
-            //Deletion maxRad has to be slightly larger because otherwise it interferes with spawning.
-            float maxRad = L_RAD * L_MAX_MAG * 1.05;
+    uint8_t angleStep = 256 / nVert;
 
-            rotation += (rotationSpd * deltaTime) * 100;
-            
-            //would lower readability tho
-            if(pos.x / 100.0 - maxRad >= SCREEN_WIDTH || pos.x / 100.0 + maxRad <= 0 || pos.y / 100.0 - maxRad >= SCREEN_HEIGHT || pos.y / 100.0 + maxRad <= 0) markedDelete = true;
-        }
-        void render(Adafruit_SSD1306 *display){
-            uint16_t degInterval = 360.0 / (stage ? S_N_VERTEX : L_N_VERTEX);
+    //Start with last vertex and use it
+    //trig goes up to 32 while screen scale is at 8, so divide by 4 to compensate
+    Vector2<int16_t> prev = Vector2<int16_t>(
+        (fastCosine(currentAngle - angleStep) * vertexMagnitudes[nVert - 1]) >> 2,
+        (fastSine(currentAngle - angleStep) * vertexMagnitudes[nVert - 1]) >> 2
+    );
 
-            uint8_t nVert = stage ? S_N_VERTEX : L_N_VERTEX;
+    for (int i = 0; i < nVert; i++)
+    {
+        Vector2<int16_t> curr = Vector2<int16_t>((fastCosine(currentAngle) * vertexMagnitudes[i]) >> 2, (fastSine(currentAngle) * vertexMagnitudes[i]) >> 2);
 
-            //prev starts on the last one so it can be utilized by the first one.
-            Vector2<float> prev = rotateAround(Vector2<float>(pos.x / 100.0, pos.y / 100.0 - vMags[nVert - 1]), degInterval * (nVert - 1));
-            Vector2<float> current;
+        display.drawLine(SCALE_DOWN(position.x + prev.x), SCALE_DOWN(position.y + prev.y), SCALE_DOWN(position.x + curr.x), SCALE_DOWN(position.y + curr.y), WHITE);
 
-            for (uint8_t i = 0; i < nVert; i++){
-                current = rotateAround(Vector2<float>(pos.x / 100.0, pos.y / 100.0 - vMags[i]), degInterval * i);
+        currentAngle += angleStep;
+        prev = curr;
+    }
+}
 
-                display->drawLine(
-                    current.x, current.y,
-                    prev.x, prev.y,
-                    1
-                );
-                prev = current;
-            }
-        }
-};
+Asteroid Asteroid::spawnAsteroid()
+{
+    uint8_t side = random(4);
 
-#endif
+    Vector2<int16_t> position;
+    Vector2<int8_t> direction;
+
+    if (side == 0) //bottom
+    {
+        position = Vector2<int16_t>(random(SCREEN_WIDTH), SCREEN_HEIGHT + BORDER_BUFFER);
+        direction = Vector2<int8_t>(random(-SIDE_SPREAD, SIDE_SPREAD + 1), random(-FORWARD_SPREAD, 0));
+    }
+    else if (side == 1) //top
+    {
+        position = Vector2<int16_t>(random(SCREEN_WIDTH), -BORDER_BUFFER);
+        direction = Vector2<int8_t>(random(-SIDE_SPREAD, SIDE_SPREAD + 1), random(1, FORWARD_SPREAD + 1));
+    }
+    else if (side == 2) //left
+    {
+        position = Vector2<int16_t>(-BORDER_BUFFER, random(SCREEN_HEIGHT));
+        direction = Vector2<int8_t>(random(1, FORWARD_SPREAD), random(-SIDE_SPREAD, SIDE_SPREAD + 1));
+    }
+    else //right
+    {
+        position = Vector2<int16_t>(SCREEN_WIDTH + BORDER_BUFFER, random(SCREEN_HEIGHT));
+        direction = Vector2<int8_t>(random(-FORWARD_SPREAD, 0), random(-SIDE_SPREAD, SIDE_SPREAD + 1));
+    }
+
+    return Asteroid(position, direction, random(2) == 0 ? ASTEROID_LARGE : ASTEROID_SMALL);
+}
+
+Asteroid Asteroid::spawnBrokenChunk() const
+{
+    Vector2<int16_t> pos = Vector2<int16_t>(position.x + random(-POSITION_DIFF, POSITION_DIFF + 1), position.y + random(-POSITION_DIFF, POSITION_DIFF + 1));
+    Vector2<int8_t> vel = Vector2<int8_t>(velocity.x + random(-VELOCITY_DIFF, VELOCITY_DIFF + 1), velocity.y + random(-VELOCITY_DIFF, VELOCITY_DIFF + 1));
+
+    return {pos, vel, ASTEROID_SMALL};
+}
