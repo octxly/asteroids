@@ -17,13 +17,13 @@ inline void tickLED(uint8_t lives)
     switch (lives)
     {
     case 3:                      //bitshift to divide time to increase period, add 32 to adjust for amplitude of wave, divide output to decrease brightness
-        analogWrite(LED_PIN, (fastSine(millis() >> 4) + 32) >> 1);
+        analogWrite(LED_PIN, (fastSine(millis() >> 4) + 32) >> 2);
         break;
     case 2:
         analogWrite(LED_PIN, (fastSine(millis() >> 2) + 32) >> 2);
         break;
     case 1:
-        analogWrite(LED_PIN, (fastSine(millis()) + 32) >> 3);
+        analogWrite(LED_PIN, (fastSine(millis()) + 32) >> 2);
         break;
     case 0:
         analogWrite(LED_PIN, 0);
